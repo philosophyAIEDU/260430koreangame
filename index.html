@@ -324,6 +324,36 @@
         .stamp.show { transform: translate(-50%,-50%) scale(1); }
         .stamp.gone { transform: translate(-50%,-50%) scale(0); transition: transform .2s ease; }
 
+        /* ── Writing Game ── */
+        .canvas-container {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f9f9f9;
+            border: 2px dashed #ddd;
+            border-radius: 20px;
+            position: relative;
+            margin: 10px 0;
+            overflow: hidden;
+            touch-action: none;
+        }
+        #writingCanvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            cursor: crosshair;
+        }
+        .btn-sub {
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-family: inherit;
+        }
+        .btn-sub:active { transform: scale(0.95); }
+
         /* ══════════════ LEVEL UP SCREEN ══════════════ */
         #level-screen { display: none; }
         
@@ -387,19 +417,30 @@
             흩어진 자음과 모음을 <strong>끌어다 놓아</strong><br>
             글자를 예쁘게 완성해주세요! 💪
         </div>
-        <button class="btn-main" onclick="startGame()">시작하기! 🚀</button>
+        <button class="btn-main" onclick="showModeSelect()">시작하기! 🚀</button>
+    </div>
+
+    <!-- ══ MODE SELECT SCREEN ══ -->
+    <div id="mode-screen" style="display: none;">
+        <img src="티니핑1.jpg" alt="티니핑" class="character-img">
+        <h1 style="color:#ff6b6b; font-size:36px; margin: 20px 0;">게임 선택!</h1>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <button class="btn-main" onclick="selectMode('assembly')">1. 모음 자음 선택 게임 🧩</button>
+            <button class="btn-main" style="background: linear-gradient(135deg, #a8edea 0%, #2980b9 100%);" onclick="selectMode('writing')">2. 한글 쓰기 게임 ✍️</button>
+        </div>
+        <button class="btn-sub" style="margin-top: 20px; border:none; background:none; color:#aaa; text-decoration:underline;" onclick="showStart()">처음으로</button>
     </div>
 
     <!-- ══ LEVEL UP SCREEN ══ -->
-    <div id="level-screen">
+    <div id="level-screen" style="display: none;">
         <img src="티니핑1.jpg" alt="티니핑" class="character-img">
         <h1 id="levelTitle" style="color:#ff6b6b; font-size:36px; margin: 20px 0;">레벨 업!</h1>
         <p class="tagline" id="levelDesc" style="font-size: 18px; margin-bottom: 30px;">다음 단계로 넘어가볼까요?</p>
         <button class="btn-main" onclick="startLevel()">다음 단계 출발! 🎈</button>
     </div>
 
-    <!-- ══ GAME SCREEN ══ -->
-    <div id="game-screen">
+    <!-- ══ ASSEMBLY GAME SCREEN ══ -->
+    <div id="game-screen" style="display: none;">
         <div class="top-bar">
             <div class="level-label" id="levelVal">1단계</div>
             <div class="score-label">⭐ <span id="scoreVal">0</span>점</div>
@@ -409,19 +450,39 @@
             <div class="progress-bar" id="progressBar" style="width:0%"></div>
         </div>
         <img src="티니핑1.jpg" alt="티니핑" class="character-small">
-        
         <div class="emoji-box" id="emojiBox" onclick="speakCurrentWord()" title="소리 듣기">🍎</div>
-        
         <div class="question-label" id="questionLabel">알맞은 글자를 끌어다 놓으세요!</div>
-        
         <div id="dropZonesContainer" class="drop-zones-container"></div>
         <div id="dragPool" class="drag-pool"></div>
-
         <button class="listen-btn" onclick="speakCurrentWord()">🔊 단어 다시 듣기</button>
     </div>
 
+    <!-- ══ WRITING GAME SCREEN ══ -->
+    <div id="writing-screen" style="display: none;">
+        <div class="top-bar">
+            <div class="level-label" id="writeLevelVal">1단계</div>
+            <div class="score-label">⭐ <span id="writeScoreVal">0</span>점</div>
+            <div class="lives-label">✍️</div>
+        </div>
+        <div class="progress-track">
+            <div class="progress-bar" id="writeProgressBar" style="width:0%"></div>
+        </div>
+        
+        <div class="emoji-box" id="writeEmojiBox" onclick="speakCurrentWord()">🍎</div>
+        <div class="question-label">그림자를 따라 예쁘게 써보세요!</div>
+        
+        <div class="canvas-container">
+            <canvas id="writingCanvas"></canvas>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+            <button class="btn-sub" style="flex:1; background:#eee; color:#666;" onclick="clearCanvas()">🧹 지우기</button>
+            <button class="btn-main" style="flex:2;" onclick="checkWriting()">다 썼어요! ✅</button>
+        </div>
+    </div>
+
     <!-- ══ END SCREEN ══ -->
-    <div id="end-screen">
+    <div id="end-screen" style="display: none;">
         <img src="티니핑1.jpg" alt="티니핑" class="character-img">
         <div class="end-title" id="endTitle">대단해요!</div>
         <div class="stars-row" id="endStars">⭐⭐⭐</div>
@@ -438,33 +499,64 @@
 <script>
 // ── Word bank (Step by step) ──────────────────────────────────────────────
 const WORDS_LVL1 = [ // 1글자
-    { emoji:'🌙', word:'달',     hint:'밤하늘에 빛나요 🌙' },
-    { emoji:'🐻', word:'곰',     hint:'숲속의 큰 동물이에요 🐻' },
-    { emoji:'📚', word:'책',     hint:'글자가 가득한 친구예요 📚' },
-    { emoji:'☕', word:'컵',     hint:'음료를 마셔요 ☕' },
-    { emoji:'⛰️', word:'산',     hint:'나무가 많은 높은 곳이에요 ⛰️' }
+    { emoji:'🌙', word:'달',     hint:'밤하늘에 빛나요' },
+    { emoji:'🐻', word:'곰',     hint:'숲속의 큰 동물이에요' },
+    { emoji:'📚', word:'책',     hint:'글자가 가득한 친구예요' },
+    { emoji:'☕', word:'컵',     hint:'음료를 마셔요' },
+    { emoji:'⛰️', word:'산',     hint:'나무가 많은 높은 곳이에요' },
+    { emoji:'☀️', word:'해',     hint:'낮 하늘에 떠있어요' },
+    { emoji:'👄', word:'입',     hint:'맛있는 음식을 먹어요' },
+    { emoji:'👂', word:'귀',     hint:'소리를 들어요' },
+    { emoji:'👃', word:'코',     hint:'냄새를 맡아요' },
+    { emoji:'🖐️', word:'손',     hint:'안녕! 하고 인사해요' },
+    { emoji:'🦶', word:'발',     hint:'걸어다닐 때 필요해요' },
+    { emoji:'🐮', word:'소',     hint:'음매~ 울어요' },
+    { emoji:'🐎', word:'말',     hint:'히이잉~ 달려요' },
+    { emoji:'🍚', word:'밥',     hint:'매일 먹는 맛있는 음식' },
+    { emoji:'🏠', word:'집',     hint:'우리가 사는 곳이에요' }
 ];
 
 const WORDS_LVL2 = [ // 2글자
-    { emoji:'🦒', word:'기린',   hint:'목이 아주 긴 동물이에요 🦒' },
-    { emoji:'🦋', word:'나비',   hint:'꽃밭에서 날아다녀요 🦋' },
-    { emoji:'🌲', word:'나무',   hint:'숲에 있어요 🌲' },
-    { emoji:'🍎', word:'사과',   hint:'빨갛고 아삭아삭한 과일이에요 🍎' },
-    { emoji:'🦁', word:'사자',   hint:'"어흥!" 동물의 왕이에요 🦁' },
-    { emoji:'🍉', word:'수박',   hint:'여름에 먹는 시원한 과일이에요 🍉' },
-    { emoji:'🍕', word:'피자',   hint:'치즈가 쭉 늘어나요 🍕' },
-    { emoji:'🍇', word:'포도',   hint:'보라색 작은 과일들이에요 🍇' },
-    { emoji:'🦛', word:'하마',   hint:'물에서 사는 뚱뚱한 동물이에요 🦛' }
+    { emoji:'👩‍🦰', word:'엄마',   hint:'가장 사랑하는 엄마예요' },
+    { emoji:'👨‍🦱', word:'아빠',   hint:'든든한 우리 아빠예요' },
+    { emoji:'👩', word:'이모',   hint:'엄마의 자매예요' },
+    { emoji:'👱‍♀️', word:'고모',   hint:'아빠의 자매예요' },
+    { emoji:'🧒', word:'동생',   hint:'나보다 어린 동생이에요' },
+    { emoji:'🦒', word:'기린',   hint:'목이 아주 긴 동물이에요' },
+    { emoji:'🦋', word:'나비',   hint:'꽃밭에서 날아다녀요' },
+    { emoji:'🌲', word:'나무',   hint:'숲에 있어요' },
+    { emoji:'🍎', word:'사과',   hint:'빨갛고 아삭아삭한 과일' },
+    { emoji:'🦁', word:'사자',   hint:'"어흥!" 동물의 왕' },
+    { emoji:'🍉', word:'수박',   hint:'여름에 먹는 시원한 과일' },
+    { emoji:'🍕', word:'피자',   hint:'치즈가 쭉 늘어나요' },
+    { emoji:'🍇', word:'포도',   hint:'보라색 작은 과일들' },
+    { emoji:'🦛', word:'하마',   hint:'물에서 사는 뚱뚱한 동물' },
+    { emoji:'🥛', word:'우유',   hint:'고소하고 하얀 음료' },
+    { emoji:'👒', word:'모자',   hint:'머리에 써요' },
+    { emoji:'👞', word:'구두',   hint:'발에 신어요' },
+    { emoji:'🧦', word:'양말',   hint:'신발 신기 전에 신어요' },
+    { emoji:'🥒', word:'오이',   hint:'길쭉한 초록색 채소' },
+    { emoji:'🍆', word:'가지',   hint:'보라색 길쭉한 채소' }
 ];
 
 const WORDS_LVL3 = [ // 3글자 이상
-    { emoji:'🐱', word:'고양이', hint:'"야옹!" 하고 울어요 🐱' },
-    { emoji:'🍌', word:'바나나', hint:'노란 달콤한 과일이에요 🍌' },
-    { emoji:'🚗', word:'자동차', hint:'"부릉부릉!" 달려요 🚗' },
-    { emoji:'🐘', word:'코끼리', hint:'코가 아주 길어요 🐘' },
-    { emoji:'🌈', word:'무지개', hint:'비 온 뒤 하늘에 떠요 🌈' },
-    { emoji:'🐯', word:'호랑이', hint:'"어흥!" 줄무늬가 있어요 🐯' },
-    { emoji:'🐶', word:'강아지', hint:'"멍멍!" 하고 짖어요 🐶' }
+    { emoji:'👵', word:'할머니', hint:'인자하신 할머니예요' },
+    { emoji:'👴', word:'할아버지', hint:'멋쟁이 할아버지예요' },
+    { emoji:'👩‍🏫', word:'선생님', hint:'공부를 가르쳐주세요' },
+    { emoji:'🏫', word:'유치원', hint:'친구들과 공부해요' },
+    { emoji:'👦', word:'오빠',   hint:'나보다 큰 남자 형제예요' },
+    { emoji:'👧', word:'언니',   hint:'나보다 큰 여자 형제예요' },
+    { emoji:'🐱', word:'고양이', hint:'"야옹!" 하고 울어요' },
+    { emoji:'🍌', word:'바나나', hint:'노란 달콤한 과일' },
+    { emoji:'🚗', word:'자동차', hint:'"부릉부릉!" 달려요' },
+    { emoji:'🐘', word:'코끼리', hint:'코가 아주 길어요' },
+    { emoji:'🌈', word:'무지개', hint:'비 온 뒤 하늘에 떠요' },
+    { emoji:'🐯', word:'호랑이', hint:'"어흥!" 줄무늬가 있어요' },
+    { emoji:'🐶', word:'강아지', hint:'"멍멍!" 하고 짖어요' },
+    { emoji:'🍠', word:'고구마', hint:'달콤하고 맛있는 뿌리채소' },
+    { emoji:'🌽', word:'옥수수', hint:'노란 알갱이가 톡톡!' },
+    { emoji:'🍦', word:'아이스크림', hint:'시원하고 달콤해요' },
+    { emoji:'✈️', word:'비행기', hint:'하늘을 훨훨 날아요' }
 ];
 
 const DISTRACTORS = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㅏ','ㅓ','ㅗ','ㅜ','ㅡ','ㅣ','ㅐ','ㅔ'];
@@ -499,10 +591,16 @@ function decomposeHangul(word) {
 const Q_PER_LEVEL = 5;
 
 // ── State ──
+let gameMode = 'assembly'; // 'assembly' or 'writing'
 let currentLevel = 1;
 let queue = [], idx = 0, score = 0, lives = 3;
 let audioCtx = null;
 let currentWordObj = null;
+
+// Drawing state
+let isDrawing = false;
+let lastX = 0, lastY = 0;
+let canvas, ctx_canvas;
 
 // Game logic specific
 let totalSlots = 0;
@@ -537,24 +635,38 @@ function soundComplete(){ beep([[523,0],[659,.15],[784,.3],[1047,.45]],.45); }
 // ── TTS (Browser Web Speech API) ──
 function getBestVoice() {
     const voices = window.speechSynthesis.getVoices();
-    // 1순위: Google 한국어 (Chrome), 2순위: Yuna, 3순위: KO-KR 포함된 목소리
-    return voices.find(v => v.name.includes('Google') && v.lang.startsWith('ko')) ||
-           voices.find(v => v.name.includes('Yuna')) ||
-           voices.find(v => v.lang.startsWith('ko')) ||
-           voices[0];
+    // 1순위: Google 한국어 (Chrome), 2순위: Yuna (Apple), 3순위: Heami (Windows)
+    const preferred = [
+        'Google 한국어',
+        'Yuna',
+        'Microsoft Heami',
+        'Microsoft Sun-Hi',
+        'Apple SD Gothic Neo'
+    ];
+    
+    for (const name of preferred) {
+        const v = voices.find(v => v.name.includes(name) && v.lang.startsWith('ko'));
+        if (v) return v;
+    }
+    
+    return voices.find(v => v.lang.startsWith('ko')) || voices[0];
 }
 
 function speakText(text) {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     
-    const utterance = new SpeechSynthesisUtterance(text);
+    // 자연스러운 끊어 읽기를 위해 쉼표와 마침표 활용
+    const refinedText = text.replace(/!/g, '! ... ').replace(/\?/g, '? ... ');
+    
+    const utterance = new SpeechSynthesisUtterance(refinedText);
     const voice = getBestVoice();
     if (voice) utterance.voice = voice;
     
     utterance.lang = 'ko-KR';
-    utterance.rate = 0.9; 
-    utterance.pitch = 1.15; 
+    // 속도와 피치를 더 인간적인 느낌으로 미세 조정
+    utterance.rate = 0.85; 
+    utterance.pitch = 1.05; 
     
     window.speechSynthesis.speak(utterance);
 }
@@ -585,9 +697,18 @@ function getLevelWords(level) {
 
 // ── Screen helpers ──
 function show(id) {
-    ['start-screen','level-screen','game-screen','end-screen'].forEach(s => {
-        document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
+    ['start-screen','mode-screen','level-screen','game-screen','writing-screen','end-screen'].forEach(s => {
+        const el = document.getElementById(s);
+        if (el) el.style.display = (s === id) ? 'block' : 'none';
     });
+}
+
+function showModeSelect() { show('mode-screen'); }
+function showStart() { show('start-screen'); }
+
+function selectMode(mode) {
+    gameMode = mode;
+    startGame();
 }
 
 // ── Stamp ──
@@ -618,7 +739,7 @@ function burst() {
 function startGame() {
     currentLevel = 1;
     score = 0;
-    lives = 3;
+    lives = (gameMode === 'assembly') ? 3 : 10; // Writing mode is easier
     showLevelScreen();
 }
 
@@ -646,8 +767,15 @@ function showLevelScreen() {
 function startLevel() {
     queue = getLevelWords(currentLevel);
     idx = 0;
-    show('game-screen');
-    renderQuestion();
+    
+    if (gameMode === 'assembly') {
+        show('game-screen');
+        renderQuestion();
+    } else {
+        show('writing-screen');
+        setupWritingCanvas();
+        renderWritingQuestion();
+    }
 }
 
 function renderQuestion() {
@@ -898,6 +1026,126 @@ function endGame() {
 }
 
 function showStart() { show('start-screen'); }
+
+// ── Writing Game Logic ──
+function setupWritingCanvas() {
+    canvas = document.getElementById('writingCanvas');
+    ctx_canvas = canvas.getContext('2d');
+    
+    // Resize canvas to parent
+    const container = canvas.parentElement;
+    const size = container.offsetWidth;
+    canvas.width = size * 2;
+    canvas.height = size * 2;
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
+    ctx_canvas.scale(2, 2);
+    
+    // Clear and redraw if size changes
+    ctx_canvas.lineJoin = 'round';
+    ctx_canvas.lineCap = 'round';
+    ctx_canvas.lineWidth = 30;
+    
+    // Remove old listeners to avoid duplicates
+    canvas.removeEventListener('pointerdown', startDrawing);
+    canvas.removeEventListener('pointermove', draw);
+    canvas.removeEventListener('pointerup', stopDrawing);
+    canvas.removeEventListener('pointerout', stopDrawing);
+    
+    canvas.addEventListener('pointerdown', startDrawing);
+    canvas.addEventListener('pointermove', draw);
+    canvas.addEventListener('pointerup', stopDrawing);
+    canvas.addEventListener('pointerout', stopDrawing);
+}
+
+function renderWritingQuestion() {
+    if (idx >= queue.length) {
+        currentLevel++;
+        showLevelScreen();
+        return;
+    }
+    
+    currentWordObj = queue[idx];
+    document.getElementById('writeEmojiBox').textContent = currentWordObj.emoji;
+    document.getElementById('writeLevelVal').textContent = currentLevel + '단계';
+    document.getElementById('writeScoreVal').textContent = score;
+    document.getElementById('writeProgressBar').style.width = ((idx / queue.length) * 100) + '%';
+    
+    clearCanvas();
+    speakCurrentWord();
+}
+
+function drawShadowText() {
+    const size = canvas.width / 4; // Because of scale(2,2) and centering
+    
+    // Dynamic font size based on word length
+    let fontSize = size * 0.8;
+    if (currentWordObj.word.length > 2) fontSize = size * 0.5;
+    if (currentWordObj.word.length > 3) fontSize = size * 0.4;
+
+    ctx_canvas.font = `800 ${fontSize}px 'Nanum Round Square'`;
+    ctx_canvas.textAlign = 'center';
+    ctx_canvas.textBaseline = 'middle';
+    
+    // Draw shadow text
+    ctx_canvas.globalCompositeOperation = 'source-over';
+    ctx_canvas.fillStyle = '#eeeeee';
+    ctx_canvas.fillText(currentWordObj.word, size, size);
+}
+
+function clearCanvas() {
+    const size = canvas.width / 2;
+    ctx_canvas.globalCompositeOperation = 'source-over';
+    ctx_canvas.clearRect(0, 0, size, size);
+    drawShadowText();
+}
+
+function startDrawing(e) {
+    isDrawing = true;
+    [lastX, lastY] = getCoords(e);
+    e.preventDefault();
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+    const [x, y] = getCoords(e);
+    
+    ctx_canvas.globalCompositeOperation = 'source-atop';
+    ctx_canvas.strokeStyle = '#ff7675';
+    ctx_canvas.lineWidth = 30;
+    
+    ctx_canvas.beginPath();
+    ctx_canvas.moveTo(lastX, lastY);
+    ctx_canvas.lineTo(x, y);
+    ctx_canvas.stroke();
+    
+    [lastX, lastY] = [x, y];
+    e.preventDefault();
+}
+
+function stopDrawing() { isDrawing = false; }
+
+function getCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = (canvas.width / 2) / rect.width;
+    const scaleY = (canvas.height / 2) / rect.height;
+    return [(e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY];
+}
+
+function checkWriting() {
+    soundCorrect();
+    showStamp('⭕');
+    burst();
+    score += 10;
+    
+    const msg = `정답입니다! '${currentWordObj.word}' 잘 썼어요!`;
+    speakText(msg);
+    
+    setTimeout(() => {
+        idx++;
+        renderWritingQuestion();
+    }, 1500);
+}
 
 // ── Background decoration ──
 (function buildBg() {
