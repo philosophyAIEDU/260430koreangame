@@ -1044,7 +1044,7 @@ function setupWritingCanvas() {
     // Clear and redraw if size changes
     ctx_canvas.lineJoin = 'round';
     ctx_canvas.lineCap = 'round';
-    ctx_canvas.lineWidth = 30;
+    ctx_canvas.lineWidth = 45;
     
     // Remove old listeners to avoid duplicates
     canvas.removeEventListener('pointerdown', startDrawing);
@@ -1078,10 +1078,10 @@ function renderWritingQuestion() {
 function drawShadowText() {
     const size = canvas.width / 4; // Because of scale(2,2) and centering
     
-    // Dynamic font size based on word length
-    let fontSize = size * 0.8;
-    if (currentWordObj.word.length > 2) fontSize = size * 0.5;
-    if (currentWordObj.word.length > 3) fontSize = size * 0.4;
+    // Dynamic font size based on word length (even larger)
+    let fontSize = size * 1.2;
+    if (currentWordObj.word.length > 2) fontSize = size * 0.8;
+    if (currentWordObj.word.length > 3) fontSize = size * 0.6;
 
     ctx_canvas.font = `800 ${fontSize}px 'Nanum Round Square'`;
     ctx_canvas.textAlign = 'center';
@@ -1112,7 +1112,7 @@ function draw(e) {
     
     ctx_canvas.globalCompositeOperation = 'source-atop';
     ctx_canvas.strokeStyle = '#ff7675';
-    ctx_canvas.lineWidth = 30;
+    ctx_canvas.lineWidth = 45;
     
     ctx_canvas.beginPath();
     ctx_canvas.moveTo(lastX, lastY);
