@@ -128,6 +128,7 @@
         .mode-card.writing  { background: linear-gradient(135deg, #4ecdc4, #45b7d1); color: white; }
         .mode-card.coloring { background: linear-gradient(135deg, #ffe66d, #ff9f43); color: #7d4e0f; }
         .mode-card.alphabet { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; }
+        .mode-card.conversation { background: linear-gradient(135deg, #74b9ff, #0984e3); color: white; }
 
         /* ── Level Screen ── */
         #level-screen h1 { font-size: 34px; font-weight: 800; color: var(--coral); margin: 14px 0 8px; }
@@ -498,6 +499,11 @@
                 <div class="mode-name">알파벳 기차</div>
                 <div class="mode-desc">ABC 순서대로!</div>
             </button>
+            <button class="mode-card conversation" onclick="selectMode('conversation')">
+                <span class="mode-icon">🗣️</span>
+                <div class="mode-name">기초 회화</div>
+                <div class="mode-desc">영어로 말해봐요</div>
+            </button>
         </div>
         <button class="btn-home" onclick="showStart()">← 처음으로</button>
     </div>
@@ -588,6 +594,22 @@
             <div class="train-engine">🚂</div>
         </div>
         <div class="alphabet-pool" id="alphabetPool"></div>
+    </div>
+
+    <!-- ══ CONVERSATION SCREEN ══ -->
+    <div id="conversation-screen" class="screen" style="display:none">
+        <div class="top-bar">
+            <div class="level-badge" style="background:#e0ebff; color:#0984e3;">🗣️ 기초 회화</div>
+            <button class="btn-home" onclick="showModeSelect()">🏠 홈</button>
+        </div>
+        <div class="emoji-box" id="convEmojiBox" style="font-size: 100px; margin: 30px 0;">👋</div>
+        <div class="question-label" id="convKorean" style="font-size: 18px; background: #ffeaa7;">안녕! / 잘 가!</div>
+        <div style="font-size: 34px; font-weight: 800; color: var(--dark); margin: 20px 0;" id="convEnglish">Hello!</div>
+        
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:30px;">
+            <button class="btn-main" style="flex:1; background: var(--teal);" onclick="speakConversation()">🔊 듣기</button>
+            <button class="btn-main" style="flex:1;" onclick="nextConversation()">다음 ➡️</button>
+        </div>
     </div>
 
     <!-- ══ END SCREEN ══ -->
@@ -785,7 +807,7 @@ function saveHighScore() {
 }
 
 // ── Screen Helpers ────────────────────────────────────────────────────────
-const SCREENS = ['start-screen','mode-screen','level-screen','game-screen','writing-screen','coloring-screen','alphabet-screen','end-screen'];
+const SCREENS = ['start-screen','mode-screen','level-screen','game-screen','writing-screen','coloring-screen','alphabet-screen','conversation-screen','end-screen'];
 function show(id) {
     SCREENS.forEach(s => {
         const el = document.getElementById(s);
@@ -830,6 +852,7 @@ function selectMode(mode) {
     gameMode = mode;
     if (mode === 'coloring') initColoringGame();
     else if (mode === 'alphabet') initAlphabetGame();
+    else if (mode === 'conversation') initConversationGame();
     else startGame();
 }
 
@@ -1730,6 +1753,54 @@ function aReturnToPool() {
     aDraggedEl.style.position = 'static'; aDraggedEl.style.left = ''; aDraggedEl.style.top = '';
     aDraggedEl.style.zIndex = ''; aDraggedEl.style.width = '50px'; aDraggedEl.style.height = '50px';
     origNextSibling ? origParent.insertBefore(aDraggedEl, origNextSibling) : origParent.appendChild(aDraggedEl);
+}
+
+// ── Conversation Game ─────────────────────────────────────────────────────
+const CONVERSATION_DATA = [
+    { en: "Hello!", ko: "안녕!", emoji: "👋" },
+    { en: "I love you.", ko: "사랑해.", emoji: "❤️" },
+    { en: "Thank you.", ko: "고마워.", emoji: "🙏" },
+    { en: "Good morning.", ko: "좋은 아침이야.", emoji: "☀️" },
+    { en: "Good night.", ko: "잘 자.", emoji: "🌙" },
+    { en: "I'm sorry.", ko: "미안해.", emoji: "🥺" },
+    { en: "How are you?", ko: "잘 지내?", emoji: "🤔" },
+    { en: "See you later.", ko: "나중에 봐.", emoji: "👋" },
+    { en: "You're welcome.", ko: "천만에.", emoji: "😊" },
+    { en: "Happy birthday!", ko: "생일 축하해!", emoji: "🎂" },
+    { en: "Yes.", ko: "네.", emoji: "⭕" },
+    { en: "No.", ko: "아니요.", emoji: "❌" },
+    { en: "Excuse me.", ko: "실례합니다.", emoji: "🙋" },
+    { en: "Nice to meet you.", ko: "만나서 반가워.", emoji: "🤝" }
+];
+let currentConvIndex = 0;
+
+function initConversationGame() {
+    CONVERSATION_DATA.sort(() => Math.random() - 0.5);
+    currentConvIndex = 0;
+    show('conversation-screen');
+    updateConversationUI();
+}
+
+function updateConversationUI() {
+    const data = CONVERSATION_DATA[currentConvIndex];
+    document.getElementById('convEmojiBox').innerText = data.emoji;
+    document.getElementById('convKorean').innerText = data.ko;
+    document.getElementById('convEnglish').innerText = data.en;
+    
+    const emojiBox = document.getElementById('convEmojiBox');
+    emojiBox.style.animation = 'none';
+    void emojiBox.offsetWidth; // trigger reflow
+    emojiBox.style.animation = 'popIn .4s cubic-bezier(.175,.885,.32,1.275)';
+}
+
+function speakConversation() {
+    const text = CONVERSATION_DATA[currentConvIndex].en;
+    speakText(text, 'en');
+}
+
+function nextConversation() {
+    currentConvIndex = (currentConvIndex + 1) % CONVERSATION_DATA.length;
+    updateConversationUI();
 }
 
 // ── Background ────────────────────────────────────────────────────────────
