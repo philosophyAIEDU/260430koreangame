@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한글 탐험대 🚀</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Round+Square:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Nanum Round Square', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* ── Floating background decorations ── */
+        .bg-deco {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .deco-item {
+            position: absolute;
+            animation: floatDeco 5s ease-in-out infinite;
+            user-select: none;
+        }
+        @keyframes floatDeco {
+            0%,100% { transform: translateY(0) rotate(0deg); }
+            50%      { transform: translateY(-18px) rotate(8deg); }
+        }
+
+        /* ── Game Card ── */
+        .game-card {
+            position: relative;
+            z-index: 1;
+            width: 92%;
+            max-width: 480px;
+            background: #fff;
+            border-radius: 32px;
+            padding: 32px 28px 36px;
+            box-shadow: 0 24px 64px rgba(0,0,0,.18);
+            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .character-img {
+            width: 140px;
+            height: auto;
+            border-radius: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            animation: bounce 1.5s ease-in-out infinite alternate;
+            margin-bottom: 15px;
+        }
+
+        .character-small {
+            width: 80px;
+            height: auto;
+            border-radius: 20px;
+            animation: bounce 1.2s ease-in-out infinite alternate;
+            display: inline-block;
+            vertical-align: middle;
+            margin-bottom: 10px;
+        }
+
+        /* ══════════════ START SCREEN ══════════════ */
+        @keyframes bounce {
+            from { transform: translateY(0) scale(1); }
+            to   { transform: translateY(-12px) scale(1.06); }
+        }
+
+        #start-screen h1 {
+            font-size: 42px;
+            font-weight: 800;
+            background: linear-gradient(135deg,#ff6b6b,#ffc3a0,#ffe082,#a8edea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0 4px;
+        }
+        #start-screen .tagline {
+            font-size: 17px;
+            color: #aaa;
+            margin-bottom: 24px;
+        }
+        .how-to {
+            background: #f7f7ff;
+            border-radius: 16px;
+            padding: 14px 18px;
+            font-size: 15px;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 26px;
+            text-align: left;
+        }
+        .how-to strong { color: #ff6b6b; }
+
+        /* ══════════════ GAME SCREEN ══════════════ */
+        #game-screen { display: none; }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .score-label {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ff6b6b;
+        }
+        .level-label {
+            font-size: 18px;
+            font-weight: 800;
+            color: #2980b9;
+            background: #e0f0ff;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        .lives-label { font-size: 24px; letter-spacing: 2px; }
+
+        .progress-track {
+            height: 14px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg,#ff6b6b,#ffc3a0);
+            border-radius: 10px;
+            transition: width .5s ease;
+        }
+
+        .emoji-box {
+            font-size: 80px;
+            line-height: 1;
+            margin: 0px 0 10px;
+            animation: popIn .4s cubic-bezier(.175,.885,.32,1.275);
+            cursor: pointer;
+        }
+        @keyframes popIn {
+            from { transform: scale(0) rotate(-10deg); opacity: 0; }
+            to   { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        .word-box {
+            font-size: 38px;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .word-box .first-letter {
+            color: #ff6b6b;
+            font-size: 46px;
+            display: inline-block;
+            animation: pulse 1s ease infinite alternate;
+        }
+        .listen-btn {
+            background: #ffe0e0;
+            border: none;
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .listen-btn:hover { transform: scale(1.1); }
+        .listen-btn:active { transform: scale(0.9); }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to   { transform: scale(1.15); }
+        }
+
+        .question-label {
+            font-size: 16px;
+            color: #999;
+            margin-bottom: 18px;
+        }
+
+        /* 2×2 choice grid */
+        .choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .choice-btn {
+            font-family: inherit;
+            font-size: 40px;
+            font-weight: 800;
+            padding: 14px 10px;
+            border: none;
+            border-radius: 22px;
+            cursor: pointer;
+            transition: transform .15s, box-shadow .15s;
+            box-shadow: 0 6px 0 rgba(0,0,0,.10);
+            line-height: 1;
+        }
+        .choice-btn:nth-child(1) { background: #ffe0e0; color: #e74c3c; }
+        .choice-btn:nth-child(2) { background: #e0f0ff; color: #2980b9; }
+        .choice-btn:nth-child(3) { background: #e0ffe8; color: #27ae60; }
+        .choice-btn:nth-child(4) { background: #fff5e0; color: #e67e22; }
+
+        .choice-btn:hover { transform: translateY(-4px); box-shadow: 0 10px 0 rgba(0,0,0,.10); }
+        .choice-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.10); }
+
+        .choice-btn.correct {
+            background: #2ecc71 !important;
+            color: #fff !important;
+            animation: zoomPop .4s ease;
+        }
+        .choice-btn.wrong {
+            background: #e74c3c !important;
+            color: #fff !important;
+            animation: wiggle .45s ease;
+        }
+        .choice-btn.disabled { pointer-events: none; }
+
+        @keyframes zoomPop {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        @keyframes wiggle {
+            0%,100% { transform: translateX(0); }
+            25%     { transform: translateX(-8px); }
+            75%     { transform: translateX(8px); }
+        }
+
+        /* ── Feedback stamp ── */
+        .stamp {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%,-50%) scale(0);
+            font-size: 90px;
+            z-index: 200;
+            pointer-events: none;
+            transition: transform .3s cubic-bezier(.175,.885,.32,1.275);
+        }
+        .stamp.show { transform: translate(-50%,-50%) scale(1); }
+        .stamp.gone { transform: translate(-50%,-50%) scale(0); transition: transform .2s ease; }
+
+        /* ── Hint after wrong ── */
+        .hint-bar {
+            margin-top: 14px;
+            padding: 10px 16px;
+            background: #fff3cd;
+            border-radius: 14px;
+            font-size: 16px;
+            color: #856404;
+            display: none;
+            animation: fadeIn .3s ease;
+        }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+        /* ══════════════ LEVEL UP SCREEN ══════════════ */
+        #level-screen { display: none; }
+        
+        /* ══════════════ END SCREEN ══════════════ */
+        #end-screen { display: none; }
+        .end-title { font-size: 34px; font-weight: 800; color: #ff6b6b; margin: 10px 0 4px; }
+        .stars-row { font-size: 56px; margin: 12px 0; letter-spacing: 4px; }
+        .end-score-text { font-size: 22px; color: #555; margin-bottom: 10px; }
+        .end-msg { font-size: 17px; color: #888; margin-bottom: 28px; line-height: 1.6; }
+
+        /* ── Shared button style ── */
+        .btn-main {
+            background: linear-gradient(135deg, #ff6b6b, #ffc3a0);
+            color: #fff;
+            border: none;
+            padding: 16px 44px;
+            font-size: 22px;
+            font-family: inherit;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 22px rgba(255,107,107,.4);
+            transition: transform .2s, box-shadow .2s;
+            margin-top: 10px;
+        }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(255,107,107,.45); }
+        .btn-main:active { transform: translateY(1px); }
+
+        /* ── Floating particles ── */
+        .particle {
+            position: fixed;
+            font-size: 28px;
+            pointer-events: none;
+            z-index: 999;
+            animation: particleUp 1.4s ease-out forwards;
+        }
+        @keyframes particleUp {
+            0%   { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-220px) scale(0) rotate(30deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Background decorations -->
+<div class="bg-deco" id="bg-deco"></div>
+
+<div class="game-card">
+
+    <!-- ══ START SCREEN ══ -->
+    <div id="start-screen">
+        <img src="티니핑1.jpg" alt="티니핑" class="character-img">
+        <h1>한글 탐험대</h1>
+        <p class="tagline">티니핑과 함께 한글을 배워보아요! 🌟</p>
+        
+        <div class="api-key-container" style="margin-bottom: 20px;">
+            <input type="password" id="apiKeyInput" placeholder="Gemini API Key 입력" style="padding: 12px; border-radius: 12px; border: 2px solid #a8edea; width: 85%; max-width: 320px; font-size: 16px; font-family: inherit; outline: none; text-align: center;">
+            <p style="font-size: 12px; color: #888; margin-top: 6px;">TTS 모델: gemini-3.1-flash-tts-preview</p>
+        </div>
+
+        <div class="how-to">
+            <strong>🎮 어떻게 해요?</strong><br>
+            그림을 보고 소리를 들어보세요!<br>
+            그 단어의 <strong>첫 번째 글자</strong>를 골라요!<br>
+            단계별로 재미있게 한글을 배울 수 있어요. 💪
+        </div>
+        <button class="btn-main" onclick="startGame()">시작하기! 🚀</button>
+    </div>
+
+    <!-- ══ LEVEL UP SCREEN ══ -->
+    <div id="level-screen">
+        <img src="티니핑1.jpg" alt="티니핑" class="character-img">
+        <h1 id="levelTitle" style="color:#ff6b6b; font-size:36px; margin: 20px 0;">레벨 업!</h1>
+        <p class="tagline" id="levelDesc" style="font-size: 18px; margin-bottom: 30px;">다음 단계로 넘어가볼까요?</p>
+        <button class="btn-main" onclick="startLevel()">다음 단계 출발! 🎈</button>
+    </div>
+
+    <!-- ══ GAME SCREEN ══ -->
+    <div id="game-screen">
+        <div class="top-bar">
+            <div class="level-label" id="levelVal">1단계</div>
+            <div class="score-label">⭐ <span id="scoreVal">0</span>점</div>
+            <div class="lives-label" id="livesVal">❤️❤️❤️</div>
+        </div>
+        <div class="progress-track">
+            <div class="progress-bar" id="progressBar" style="width:0%"></div>
+        </div>
+        <img src="티니핑1.jpg" alt="티니핑" class="character-small">
+        <div class="emoji-box" id="emojiBox" onclick="speakCurrentWord()" title="소리 듣기">🍎</div>
+        <div class="word-box" id="wordBox">
+            <span id="wordText"></span>
+            <button class="listen-btn" onclick="speakCurrentWord()" title="소리 듣기">🔊</button>
+        </div>
+        <div class="question-label">이 단어의 <strong>첫 글자</strong>는 무엇일까요?</div>
+        <div class="choices" id="choicesGrid"></div>
+        <div class="hint-bar" id="hintBar"></div>
+    </div>
+
+    <!-- ══ END SCREEN ══ -->
+    <div id="end-screen">
+        <img src="티니핑1.jpg" alt="티니핑" class="character-img">
+        <div class="end-title" id="endTitle">대단해요!</div>
+        <div class="stars-row" id="endStars">⭐⭐⭐</div>
+        <div class="end-score-text" id="endScore">100점 / 100점</div>
+        <div class="end-msg" id="endMsg">한글 탐험 완료!</div>
+        <button class="btn-main" onclick="showStart()">다시 하기! 🔄</button>
+    </div>
+
+</div>
+
+<!-- Feedback stamp -->
+<div class="stamp" id="stamp">⭕</div>
+
+<script>
+// ── Word bank (Step by step) ──────────────────────────────────────────────
+const WORDS_LVL1 = [ // 1글자
+    { emoji:'🌙', word:'달',     first:'ㄷ', hint:'밤하늘에 빛나요 🌙' },
+    { emoji:'🐻', word:'곰',     first:'ㄱ', hint:'숲속의 큰 동물이에요 🐻' },
+    { emoji:'책', word:'책',     first:'ㅊ', hint:'글자가 가득한 친구예요 📚' },
+    { emoji:'☕', word:'컵',     first:'ㅋ', hint:'음료를 마셔요 ☕' },
+    { emoji:'산', word:'산',     first:'ㅅ', hint:'나무가 많은 높은 곳이에요 ⛰️' }
+];
+
+const WORDS_LVL2 = [ // 2글자
+    { emoji:'기린', word:'기린',   first:'ㄱ', hint:'목이 아주 긴 동물이에요 🦒' },
+    { emoji:'나비', word:'나비',   first:'ㄴ', hint:'꽃밭에서 날아다녀요 🦋' },
+    { emoji:'나무', word:'나무',   first:'ㄴ', hint:'숲에 있어요 🌲' },
+    { emoji:'딸기', word:'딸기',   first:'ㄸ', hint:'빨갛고 달콤한 과일이에요 🍓' }, // 된소리
+    { emoji:'사과', word:'사과',   first:'ㅅ', hint:'빨갛고 아삭아삭한 과일이에요 🍎' },
+    { emoji:'사자', word:'사자',   first:'ㅅ', hint:'"어흥!" 동물의 왕이에요 🦁' },
+    { emoji:'수박', word:'수박',   first:'ㅅ', hint:'여름에 먹는 시원한 과일이에요 🍉' },
+    { emoji:'피자', word:'피자',   first:'ㅍ', hint:'치즈가 쭉 늘어나요 🍕' },
+    { emoji:'포도', word:'포도',   first:'ㅍ', hint:'보라색 작은 과일들이에요 🍇' },
+    { emoji:'하마', word:'하마',   first:'ㅎ', hint:'물에서 사는 뚱뚱한 동물이에요 🦛' }
+];
+
+const WORDS_LVL3 = [ // 3글자 이상
+    { emoji:'고양이', word:'고양이', first:'ㄱ', hint:'"야옹!" 하고 울어요 🐱' },
+    { emoji:'바나나', word:'바나나', first:'ㅂ', hint:'노란 달콤한 과일이에요 🍌' },
+    { emoji:'자동차', word:'자동차', first:'ㅈ', hint:'"부릉부릉!" 달려요 🚗' },
+    { emoji:'코끼리', word:'코끼리', first:'ㅋ', hint:'코가 아주 길어요 🐘' },
+    { emoji:'무지개', word:'무지개', first:'ㅁ', hint:'비 온 뒤 하늘에 떠요 🌈' },
+    { emoji:'호랑이', word:'호랑이', first:'ㅎ', hint:'"어흥!" 줄무늬가 있어요 🐯' },
+    { emoji:'오징어', word:'오징어', first:'ㅇ', hint:'다리가 열 개예요 🦑' },
+    { emoji:'강아지', word:'강아지', first:'ㄱ', hint:'"멍멍!" 하고 짖어요 🐶' }
+];
+
+const ALL_CONSONANTS = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㄲ','ㄸ','ㅃ','ㅆ','ㅉ'];
+const Q_PER_LEVEL = 5;
+
+// ── State ──
+let currentLevel = 1;
+let queue = [], idx = 0, score = 0, lives = 3, answered = false;
+let audioCtx = null;
+let currentWordObj = null;
+
+// ── Audio (Beeps) ──
+function ctx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+}
+function beep(notes, dur = .35) {
+    try {
+        const c = ctx();
+        notes.forEach(([freq, t]) => {
+            const osc = c.createOscillator(), g = c.createGain();
+            osc.connect(g); g.connect(c.destination);
+            osc.frequency.value = freq;
+            g.gain.setValueAtTime(.28, c.currentTime + t);
+            g.gain.exponentialRampToValueAtTime(.001, c.currentTime + t + dur);
+            osc.start(c.currentTime + t);
+            osc.stop(c.currentTime + t + dur);
+        });
+    } catch(e) {}
+}
+function soundCorrect() { beep([[523,0],[659,.12],[784,.24]]); }
+function soundWrong()   { beep([[350,0],[220,.2]]); }
+function soundComplete(){ beep([[523,0],[659,.15],[784,.3],[1047,.45]],.45); }
+
+// ── TTS (Gemini API) ──
+let currentAudio = null;
+
+async function speakText(text) {
+    const apiKey = document.getElementById('apiKeyInput').value.trim();
+    if (!apiKey) {
+        console.warn('API 키가 없어 브라우저 기본 TTS를 사용합니다.');
+        fallbackTTS(text);
+        return;
+    }
+
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+    }
+
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: text }]
+                }]
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error('API Error:', data.error);
+            fallbackTTS(text);
+            return;
+        }
+
+        if (data.candidates && data.candidates[0].content.parts) {
+            const parts = data.candidates[0].content.parts;
+            // Find inlineData with audio
+            const audioPart = parts.find(p => p.inlineData && p.inlineData.mimeType.startsWith('audio/'));
+            
+            if (audioPart) {
+                const audioUrl = `data:${audioPart.inlineData.mimeType};base64,${audioPart.inlineData.data}`;
+                currentAudio = new Audio(audioUrl);
+                currentAudio.play();
+            } else {
+                console.log('No audio part found, using browser fallback');
+                fallbackTTS(text);
+            }
+        } else {
+            fallbackTTS(text);
+        }
+    } catch (e) {
+        console.error('TTS Error:', e);
+        fallbackTTS(text);
+    }
+}
+
+function fallbackTTS(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 0.85;
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+function speakCurrentWord() {
+    if (currentWordObj) {
+        speakText(currentWordObj.word);
+    }
+}
+
+// ── Helpers ──
+function shuffle(a) {
+    const b = [...a];
+    for (let i = b.length-1; i > 0; i--) {
+        const j = Math.floor(Math.random()*(i+1));
+        [b[i],b[j]] = [b[j],b[i]];
+    }
+    return b;
+}
+function makeChoices(correct) {
+    const pool = ALL_CONSONANTS.filter(c => c !== correct);
+    return shuffle([correct, ...shuffle(pool).slice(0,3)]);
+}
+function getLevelWords(level) {
+    if (level === 1) return shuffle(WORDS_LVL1).slice(0, Q_PER_LEVEL);
+    if (level === 2) return shuffle(WORDS_LVL2).slice(0, Q_PER_LEVEL);
+    return shuffle(WORDS_LVL3).slice(0, Q_PER_LEVEL);
+}
+
+// ── Screen helpers ──
+function show(id) {
+    ['start-screen','level-screen','game-screen','end-screen'].forEach(s => {
+        document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
+    });
+}
+
+// ── Stamp ──
+function showStamp(emoji) {
+    const s = document.getElementById('stamp');
+    s.textContent = emoji;
+    s.className = 'stamp show';
+    setTimeout(() => s.className = 'stamp gone', 700);
+}
+
+// ── Particles ──
+function burst() {
+    const EMOJIS = ['⭐','🌟','✨','🎉','🎊','🎈','💫'];
+    for (let i = 0; i < 10; i++) {
+        setTimeout(() => {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.textContent = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+            p.style.left = (10 + Math.random()*80) + 'vw';
+            p.style.top  = (20 + Math.random()*60) + 'vh';
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 1500);
+        }, i * 80);
+    }
+}
+
+// ── Game Logic ──
+function startGame() {
+    currentLevel = 1;
+    score = 0;
+    lives = 3;
+    showLevelScreen();
+}
+
+function showLevelScreen() {
+    if (currentLevel > 3) {
+        endGame();
+        return;
+    }
+    document.getElementById('levelTitle').textContent = currentLevel + '단계 시작!';
+    let desc = '';
+    if (currentLevel === 1) desc = '짧은 1글자 단어를 맞춰보아요! 🐣';
+    else if (currentLevel === 2) desc = '이제 2글자 단어예요! 할 수 있죠? 🐥';
+    else if (currentLevel === 3) desc = '마지막 3단계! 긴 단어에 도전해요! 🦅';
+    
+    document.getElementById('levelDesc').textContent = desc;
+    show('level-screen');
+    
+    // 티니핑 응원 소리
+    speakText(currentLevel + "단계 시작! 파이팅!");
+}
+
+function startLevel() {
+    queue = getLevelWords(currentLevel);
+    idx = 0;
+    answered = false;
+    show('game-screen');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    if (idx >= Q_PER_LEVEL || lives <= 0) { 
+        if (lives <= 0) {
+            endGame();
+        } else {
+            // Level complete
+            currentLevel++;
+            showLevelScreen();
+        }
+        return; 
+    }
+
+    answered = false;
+    const q = queue[idx];
+    currentWordObj = q;
+
+    // Progress
+    document.getElementById('levelVal').textContent = currentLevel + '단계';
+    document.getElementById('progressBar').style.width = (idx / Q_PER_LEVEL * 100) + '%';
+    document.getElementById('scoreVal').textContent = score;
+    document.getElementById('livesVal').textContent =
+        '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+
+    // Emoji (re-trigger animation)
+    const eb = document.getElementById('emojiBox');
+    eb.style.animation = 'none';
+    void eb.offsetWidth;
+    eb.style.animation = 'popIn .4s cubic-bezier(.175,.885,.32,1.275)';
+    
+    // 만약 emoji가 1글자가 아니고 단어면, 첫 글자만 가져와서 보여주거나 사진이 없으니 글씨로 대체.
+    // WORDS_LVL1 등에 있는 emoji를 그대로 사용.
+    let displayChar = q.emoji;
+    // 이모지가 아닌 한글 텍스트인 경우 스타일 조정
+    if (![...displayChar].some(char => char.codePointAt(0) > 0x1F000)) {
+        eb.style.fontSize = '60px';
+    } else {
+        eb.style.fontSize = '80px';
+    }
+    eb.textContent = displayChar;
+
+    // Word — highlight first letter
+    const wb = document.getElementById('wordText');
+    const rest = q.word.slice(1);
+    wb.innerHTML = `<span class="first-letter">${q.word[0]}</span>${rest}`;
+
+    // Hint bar
+    const hb = document.getElementById('hintBar');
+    hb.style.display = 'none';
+    hb.textContent = '';
+
+    // Choices
+    const grid = document.getElementById('choicesGrid');
+    grid.innerHTML = '';
+    makeChoices(q.first).forEach(letter => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = letter;
+        btn.onclick = () => check(letter, q, btn);
+        grid.appendChild(btn);
+    });
+
+    // 자동 읽어주기
+    setTimeout(speakCurrentWord, 300);
+}
+
+function check(selected, q, btn) {
+    if (answered) return;
+    answered = true;
+
+    document.querySelectorAll('.choice-btn').forEach(b => b.classList.add('disabled'));
+
+    if (selected === q.first) {
+        btn.classList.add('correct');
+        score += 10;
+        soundCorrect();
+        showStamp('🎉');
+        burst();
+        speakText('정답!');
+        setTimeout(next, 1300);
+    } else {
+        btn.classList.add('wrong');
+        lives--;
+        // Reveal correct
+        document.querySelectorAll('.choice-btn').forEach(b => {
+            if (b.textContent === q.first) b.classList.add('correct');
+        });
+        soundWrong();
+        showStamp('😢');
+        // Show hint
+        const hb = document.getElementById('hintBar');
+        hb.textContent = '💡 정답: ' + q.first + '  |  ' + q.hint;
+        hb.style.display = 'block';
+        speakText('아쉽네요. 정답은 ' + q.first + ' 입니다.');
+        
+        setTimeout(next, 2500);
+    }
+}
+
+function next() {
+    idx++;
+    renderQuestion();
+}
+
+function endGame() {
+    soundComplete();
+    burst();
+    setTimeout(burst, 400);
+
+    const max = 3 * Q_PER_LEVEL * 10; // 3 levels * 5 q * 10
+    const pct = score / max;
+    let stars, title, msg;
+    if (pct >= .9) {
+        stars='⭐⭐⭐'; title='완벽해요! 🏆';
+        msg = '한글 탐험 완료!\n진짜 한글 영웅이에요! 🦸';
+    } else if (pct >= .6) {
+        stars='⭐⭐'; title='잘 했어요! 🎉';
+        msg = '조금 더 연습하면 완벽해질 거예요!\n파이팅! 💪';
+    } else {
+        stars='⭐'; title='조금 더 해봐요! 💪';
+        msg = '괜찮아요! 다시 하면 더 잘할 수 있어요!\n한 번 더 도전! 🚀';
+    }
+
+    document.getElementById('endTitle').textContent  = title;
+    document.getElementById('endStars').textContent  = stars;
+    document.getElementById('endScore').textContent  = score + '점 / ' + max + '점';
+    document.getElementById('endMsg').textContent    = msg;
+    show('end-screen');
+    speakText(title + " " + msg);
+}
+
+function showStart() { show('start-screen'); }
+
+// ── Background decoration ──
+(function buildBg() {
+    const items = ['🌸','💫','⭐','🌼','✨','🎈','🌟','🍀','🌺','🦄'];
+    const c = document.getElementById('bg-deco');
+    for (let i = 0; i < 18; i++) {
+        const d = document.createElement('div');
+        d.className = 'deco-item';
+        d.textContent = items[Math.floor(Math.random()*items.length)];
+        d.style.left = Math.random()*100 + '%';
+        d.style.top  = Math.random()*100 + '%';
+        d.style.fontSize = (14 + Math.random()*18) + 'px';
+        d.style.animationDelay    = (Math.random()*5) + 's';
+        d.style.animationDuration = (3.5 + Math.random()*3) + 's';
+        c.appendChild(d);
+    }
+})();
+</script>
+</body>
+</html>
