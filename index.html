@@ -171,38 +171,67 @@
             gap: 12px;
             margin-bottom: 20px;
         }
-        .char-block {
-            display: flex;
-            gap: 6px;
-            background: rgba(0,0,0,0.03);
-            padding: 10px;
-            border-radius: 15px;
-            border: 1px solid #eee;
-        }
-        .drop-slot {
-            width: 46px;
-            height: 46px;
-            border: 3px dashed #ccc;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            font-weight: 800;
+        .syllable-block {
             position: relative;
+            width: 110px;
+            height: 120px;
             background: #fafafa;
-            transition: all 0.2s;
+            border: 3px dashed #ccc;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 10px;
+            transition: all 0.3s;
         }
-        .drop-slot.error-flash {
+        .syllable-block.completed {
+            background: #eafaf1;
+            border-color: #2ecc71;
+            border-style: solid;
+        }
+        .syllable-block.error-flash {
             background: #ffe0e0;
             border-color: #e74c3c;
             animation: wiggle 0.4s ease;
         }
-        .drop-slot::after {
-            content: attr(data-expected);
-            color: #ddd; /* shadow letter */
+        .syllable-bg {
             position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 72px;
+            font-weight: 800;
+            color: #e0e0e0;
             z-index: 0;
+            transition: color 0.3s;
+            pointer-events: none;
+        }
+        .syllable-block.completed .syllable-bg {
+            color: #333;
+        }
+        .syllable-block.completed .dropped-jamos {
+            display: none;
+        }
+        .dropped-jamos {
+            display: flex;
+            gap: 4px;
+            z-index: 1;
+            flex-wrap: wrap;
+            justify-content: center;
+            pointer-events: none;
+        }
+        .dropped-badge {
+            width: 26px;
+            height: 26px;
+            background: #ff6b6b;
+            color: #fff;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 0 #cc5555;
             pointer-events: none;
         }
 
@@ -235,16 +264,6 @@
             user-select: none;
         }
         .drag-item:active { cursor: grabbing; }
-        
-        /* When inside drop-slot */
-        .drop-slot .drag-item {
-            box-shadow: none;
-            cursor: default;
-            z-index: 1; /* above shadow */
-            border: none;
-            background: transparent;
-            transform: translateY(2px);
-        }
 
         .listen-btn {
             background: #e0f0ff;
@@ -336,10 +355,7 @@
         <h1>한글 탐험대</h1>
         <p class="tagline">티니핑과 함께 한글을 조립해봐요! 🌟</p>
         
-        <div class="api-key-container" style="margin-bottom: 20px;">
-            <input type="password" id="apiKeyInput" placeholder="Gemini API Key 입력" style="padding: 12px; border-radius: 12px; border: 2px solid #a8edea; width: 85%; max-width: 320px; font-size: 16px; font-family: inherit; outline: none; text-align: center;">
-            <p style="font-size: 12px; color: #888; margin-top: 6px;">TTS 모델: gemini-3.1-flash-tts-preview</p>
-        </div>
+
 
         <div class="how-to">
             <strong>🎮 어떻게 해요?</strong><br>
@@ -494,77 +510,16 @@ function soundCorrect() { beep([[523,0],[659,.12],[784,.24]]); }
 function soundWrong()   { beep([[350,0],[220,.2]]); }
 function soundComplete(){ beep([[523,0],[659,.15],[784,.3],[1047,.45]],.45); }
 
-// ── TTS (Gemini API) ──
-let currentAudio = null;
-
-async function speakText(text) {
-    const apiKey = document.getElementById('apiKeyInput').value.trim();
-    if (!apiKey) {
-        console.warn('API 키가 없어 브라우저 기본 TTS를 사용합니다.');
-        fallbackTTS(text);
-        return;
-    }
-
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-    }
-
-    try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                systemInstruction: {
-                    parts: [{
-                        text: "당신은 아이들에게 한글을 가르치는 자상하고 상냥한 한국인 여성 선생님입니다. 다른 부연 설명이나 텍스트 출력 없이, 주어진 단어와 문장만 실제 선생님처럼 밝고 다정하며 자연스러운 한국어 네이티브 억양으로 또박또박 읽어주세요."
-                    }]
-                },
-                contents: [{
-                    parts: [{ text: text }]
-                }]
-            })
-        });
-
-        const data = await response.json();
-        
-        if (data.error) {
-            console.error('API Error:', data.error);
-            fallbackTTS(text);
-            return;
-        }
-
-        if (data.candidates && data.candidates[0].content.parts) {
-            const parts = data.candidates[0].content.parts;
-            const audioPart = parts.find(p => p.inlineData && p.inlineData.mimeType.startsWith('audio/'));
-            
-            if (audioPart) {
-                const audioUrl = `data:${audioPart.inlineData.mimeType};base64,${audioPart.inlineData.data}`;
-                currentAudio = new Audio(audioUrl);
-                currentAudio.play();
-            } else {
-                console.log('No audio part found, using browser fallback');
-                fallbackTTS(text);
-            }
-        } else {
-            fallbackTTS(text);
-        }
-    } catch (e) {
-        console.error('TTS Error:', e);
-        fallbackTTS(text);
-    }
-}
-
-function fallbackTTS(text) {
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
-        utterance.rate = 0.85;
-        window.speechSynthesis.speak(utterance);
-    }
+// ── TTS (Browser Web Speech API) ──
+function speakText(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ko-KR';
+    // 부드럽고 다정한 선생님 톤을 위한 설정값
+    utterance.rate = 0.9;  
+    utterance.pitch = 1.2; 
+    window.speechSynthesis.speak(utterance);
 }
 
 function speakCurrentWord() {
@@ -685,30 +640,28 @@ function renderQuestion() {
     }
     eb.textContent = displayChar;
 
-    // Setup Drag & Drop UI
-    const decomposed = decomposeHangul(q.word);
-    const dzContainer = document.getElementById('dropZonesContainer');
-    const dragPool = document.getElementById('dragPool');
-    dzContainer.innerHTML = '';
-    dragPool.innerHTML = '';
-
-    totalSlots = 0;
-    filledSlots = 0;
-    let expectedChars = [];
-
-    decomposed.forEach(charParts => {
+    decomposed.forEach((charParts, index) => {
+        const syllableStr = q.word[index];
         const charBlock = document.createElement('div');
-        charBlock.className = 'char-block';
+        charBlock.className = 'syllable-block';
+        charBlock.dataset.syllable = syllableStr;
         
-        charParts.forEach(part => {
-            const slot = document.createElement('div');
-            slot.className = 'drop-slot';
-            slot.dataset.expected = part.char;
-            charBlock.appendChild(slot);
-            totalSlots++;
-            expectedChars.push(part.char);
-        });
+        const neededJamos = charParts.map(p => p.char);
+        charBlock.dataset.needed = JSON.stringify(neededJamos);
+        
+        const bgText = document.createElement('div');
+        bgText.className = 'syllable-bg';
+        bgText.textContent = syllableStr;
+        charBlock.appendChild(bgText);
+
+        const droppedContainer = document.createElement('div');
+        droppedContainer.className = 'dropped-jamos';
+        charBlock.appendChild(droppedContainer);
+
         dzContainer.appendChild(charBlock);
+        
+        totalSlots += neededJamos.length;
+        expectedChars.push(...neededJamos);
     });
 
     // Add distractors (2~4 random chars)
@@ -765,8 +718,6 @@ function moveAt(clientX, clientY) {
 function onPointerMove(e) {
     if (!draggedEl) return;
     moveAt(e.clientX, e.clientY);
-}
-
 function onPointerUp(e) {
     if (!draggedEl) return;
     document.removeEventListener('pointermove', onPointerMove);
@@ -778,51 +729,70 @@ function onPointerUp(e) {
     let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
     draggedEl.style.display = 'inline-flex';
     
-    let dropSlot = elemBelow ? elemBelow.closest('.drop-slot') : null;
+    let dropSlot = elemBelow ? elemBelow.closest('.syllable-block') : null;
     
-    if (dropSlot && !dropSlot.hasChildNodes()) {
-        let expected = dropSlot.dataset.expected;
-        if (draggedEl.textContent === expected) {
-            // Correct Drop
-            draggedEl.style.position = 'static';
-            draggedEl.style.width = '100%';
-            draggedEl.style.height = '100%';
-            draggedEl.classList.remove('drag-item');
-            draggedEl.style.cursor = 'default';
-            dropSlot.appendChild(draggedEl);
-            soundCorrect();
+    if (dropSlot && !dropSlot.classList.contains('completed')) {
+        let neededStr = dropSlot.dataset.needed;
+        if (neededStr) {
+            let neededArr = JSON.parse(neededStr);
+            let draggedChar = draggedEl.textContent;
+            let charIndex = neededArr.indexOf(draggedChar);
             
-            filledSlots++;
-            if (filledSlots === totalSlots) {
-                // Whole word completed!
-                score += 10;
-                showStamp('🎉');
-                burst();
-                speakText(`잘했습니다! 정답입니다! ${currentWordObj.word}`);
+            if (charIndex !== -1) {
+                // Correct Drop
+                neededArr.splice(charIndex, 1);
+                dropSlot.dataset.needed = JSON.stringify(neededArr);
                 
-                // Disable all remaining items
-                document.querySelectorAll('.drag-item').forEach(i => i.style.pointerEvents = 'none');
+                let droppedContainer = dropSlot.querySelector('.dropped-jamos');
                 
-                setTimeout(next, 3500); // give enough time to read the full string
+                draggedEl.style.position = 'static';
+                draggedEl.style.width = '26px';
+                draggedEl.style.height = '26px';
+                draggedEl.classList.remove('drag-item');
+                draggedEl.classList.add('dropped-badge');
+                draggedEl.style.cursor = 'default';
+                droppedContainer.appendChild(draggedEl);
+                
+                soundCorrect();
+                filledSlots++;
+                
+                if (neededArr.length === 0) {
+                    dropSlot.classList.add('completed');
+                }
+                
+                if (filledSlots === totalSlots) {
+                    // Whole word completed!
+                    score += 10;
+                    showStamp('🎉');
+                    burst();
+                    speakText(`잘했습니다! 정답입니다! ${currentWordObj.word}`);
+                    
+                    // Disable all remaining items
+                    document.querySelectorAll('.drag-item').forEach(i => i.style.pointerEvents = 'none');
+                    
+                    setTimeout(next, 3500); // give enough time to read the full string
+                }
+            } else {
+                // Wrong Drop
+                lives--;
+                document.getElementById('livesVal').textContent = '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, 3 - lives));
+                
+                dropSlot.classList.add('error-flash');
+                setTimeout(() => dropSlot.classList.remove('error-flash'), 500);
+                soundWrong();
+                speakText("틀렸어요, 다시 찾아보세요.");
+                
+                if (lives <= 0) {
+                    setTimeout(endGame, 1000);
+                }
+                
+                returnToPool();
             }
         } else {
-            // Wrong Drop
-            lives--;
-            document.getElementById('livesVal').textContent = '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, 3 - lives));
-            
-            dropSlot.classList.add('error-flash');
-            setTimeout(() => dropSlot.classList.remove('error-flash'), 500);
-            soundWrong();
-            speakText("틀렸어요, 다시 찾아보세요.");
-            
-            if (lives <= 0) {
-                setTimeout(endGame, 1000);
-            }
-            
             returnToPool();
         }
     } else {
-        // Dropped outside
+        // Dropped outside or completed block
         returnToPool();
     }
     
