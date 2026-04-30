@@ -416,31 +416,31 @@
 const WORDS_LVL1 = [ // 1글자
     { emoji:'🌙', word:'달',     hint:'밤하늘에 빛나요 🌙' },
     { emoji:'🐻', word:'곰',     hint:'숲속의 큰 동물이에요 🐻' },
-    { emoji:'책', word:'책',     hint:'글자가 가득한 친구예요 📚' },
+    { emoji:'📚', word:'책',     hint:'글자가 가득한 친구예요 📚' },
     { emoji:'☕', word:'컵',     hint:'음료를 마셔요 ☕' },
-    { emoji:'산', word:'산',     hint:'나무가 많은 높은 곳이에요 ⛰️' }
+    { emoji:'⛰️', word:'산',     hint:'나무가 많은 높은 곳이에요 ⛰️' }
 ];
 
 const WORDS_LVL2 = [ // 2글자
-    { emoji:'기린', word:'기린',   hint:'목이 아주 긴 동물이에요 🦒' },
-    { emoji:'나비', word:'나비',   hint:'꽃밭에서 날아다녀요 🦋' },
-    { emoji:'나무', word:'나무',   hint:'숲에 있어요 🌲' },
-    { emoji:'사과', word:'사과',   hint:'빨갛고 아삭아삭한 과일이에요 🍎' },
-    { emoji:'사자', word:'사자',   hint:'"어흥!" 동물의 왕이에요 🦁' },
-    { emoji:'수박', word:'수박',   hint:'여름에 먹는 시원한 과일이에요 🍉' },
-    { emoji:'피자', word:'피자',   hint:'치즈가 쭉 늘어나요 🍕' },
-    { emoji:'포도', word:'포도',   hint:'보라색 작은 과일들이에요 🍇' },
-    { emoji:'하마', word:'하마',   hint:'물에서 사는 뚱뚱한 동물이에요 🦛' }
+    { emoji:'🦒', word:'기린',   hint:'목이 아주 긴 동물이에요 🦒' },
+    { emoji:'🦋', word:'나비',   hint:'꽃밭에서 날아다녀요 🦋' },
+    { emoji:'🌲', word:'나무',   hint:'숲에 있어요 🌲' },
+    { emoji:'🍎', word:'사과',   hint:'빨갛고 아삭아삭한 과일이에요 🍎' },
+    { emoji:'🦁', word:'사자',   hint:'"어흥!" 동물의 왕이에요 🦁' },
+    { emoji:'🍉', word:'수박',   hint:'여름에 먹는 시원한 과일이에요 🍉' },
+    { emoji:'🍕', word:'피자',   hint:'치즈가 쭉 늘어나요 🍕' },
+    { emoji:'🍇', word:'포도',   hint:'보라색 작은 과일들이에요 🍇' },
+    { emoji:'🦛', word:'하마',   hint:'물에서 사는 뚱뚱한 동물이에요 🦛' }
 ];
 
 const WORDS_LVL3 = [ // 3글자 이상
-    { emoji:'고양이', word:'고양이', hint:'"야옹!" 하고 울어요 🐱' },
-    { emoji:'바나나', word:'바나나', hint:'노란 달콤한 과일이에요 🍌' },
-    { emoji:'자동차', word:'자동차', hint:'"부릉부릉!" 달려요 🚗' },
-    { emoji:'코끼리', word:'코끼리', hint:'코가 아주 길어요 🐘' },
-    { emoji:'무지개', word:'무지개', hint:'비 온 뒤 하늘에 떠요 🌈' },
-    { emoji:'호랑이', word:'호랑이', hint:'"어흥!" 줄무늬가 있어요 🐯' },
-    { emoji:'강아지', word:'강아지', hint:'"멍멍!" 하고 짖어요 🐶' }
+    { emoji:'🐱', word:'고양이', hint:'"야옹!" 하고 울어요 🐱' },
+    { emoji:'🍌', word:'바나나', hint:'노란 달콤한 과일이에요 🍌' },
+    { emoji:'🚗', word:'자동차', hint:'"부릉부릉!" 달려요 🚗' },
+    { emoji:'🐘', word:'코끼리', hint:'코가 아주 길어요 🐘' },
+    { emoji:'🌈', word:'무지개', hint:'비 온 뒤 하늘에 떠요 🌈' },
+    { emoji:'🐯', word:'호랑이', hint:'"어흥!" 줄무늬가 있어요 🐯' },
+    { emoji:'🐶', word:'강아지', hint:'"멍멍!" 하고 짖어요 🐶' }
 ];
 
 const DISTRACTORS = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㅏ','ㅓ','ㅗ','ㅜ','ㅡ','ㅣ','ㅐ','ㅔ'];
@@ -639,6 +639,16 @@ function renderQuestion() {
         eb.style.fontSize = '80px';
     }
     eb.textContent = displayChar;
+
+    const dzContainer = document.getElementById('dropZonesContainer');
+    const dragPool = document.getElementById('dragPool');
+    dzContainer.innerHTML = '';
+    dragPool.innerHTML = '';
+
+    let decomposed = decomposeHangul(q.word);
+    totalSlots = 0;
+    filledSlots = 0;
+    expectedChars = [];
 
     decomposed.forEach((charParts, index) => {
         const syllableStr = q.word[index];
