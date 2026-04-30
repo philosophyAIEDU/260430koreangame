@@ -467,6 +467,11 @@ async function speakText(text) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                systemInstruction: {
+                    parts: [{
+                        text: "당신은 아이들에게 한글을 가르치는 자상하고 상냥한 한국인 여성 선생님입니다. 다른 부연 설명이나 텍스트 출력 없이, 주어진 단어와 문장만 실제 선생님처럼 밝고 다정하며 자연스러운 한국어 네이티브 억양으로 또박또박 읽어주세요."
+                    }]
+                },
                 contents: [{
                     parts: [{ text: text }]
                 }]
