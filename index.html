@@ -1770,7 +1770,17 @@ const CONVERSATION_DATA = [
     { en: "Yes.", ko: "네.", emoji: "⭕" },
     { en: "No.", ko: "아니요.", emoji: "❌" },
     { en: "Excuse me.", ko: "실례합니다.", emoji: "🙋" },
-    { en: "Nice to meet you.", ko: "만나서 반가워.", emoji: "🤝" }
+    { en: "Nice to meet you.", ko: "만나서 반가워.", emoji: "🤝" },
+    { en: "What's your name?", ko: "이름이 뭐야?", emoji: "🏷️" },
+    { en: "Let's play together.", ko: "같이 놀자.", emoji: "🧸" },
+    { en: "I'm hungry.", ko: "나 배고파.", emoji: "🍔" },
+    { en: "It's delicious.", ko: "맛있어.", emoji: "😋" },
+    { en: "Look at this.", ko: "이것 봐.", emoji: "👀" },
+    { en: "Good job!", ko: "참 잘했어!", emoji: "👍" },
+    { en: "Don't cry.", ko: "울지 마.", emoji: "😢" },
+    { en: "I can do it.", ko: "할 수 있어.", emoji: "💪" },
+    { en: "Wait a minute.", ko: "잠깐만.", emoji: "⏱️" },
+    { en: "Let's go!", ko: "출발!", emoji: "🚀" }
 ];
 let currentConvIndex = 0;
 
@@ -1794,8 +1804,27 @@ function updateConversationUI() {
 }
 
 function speakConversation() {
-    const text = CONVERSATION_DATA[currentConvIndex].en;
-    speakText(text, 'en');
+    if (!soundEnabled || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    
+    const data = CONVERSATION_DATA[currentConvIndex];
+    
+    // English
+    const uttEn = new SpeechSynthesisUtterance(data.en);
+    const voiceEn = getBestVoice('en');
+    if (voiceEn) uttEn.voice = voiceEn;
+    uttEn.lang = 'en-US';
+    uttEn.rate = 0.85; uttEn.pitch = 1.05;
+    
+    // Korean
+    const uttKo = new SpeechSynthesisUtterance(data.ko);
+    const voiceKo = getBestVoice('ko');
+    if (voiceKo) uttKo.voice = voiceKo;
+    uttKo.lang = 'ko-KR';
+    uttKo.rate = 0.85; uttKo.pitch = 1.05;
+    
+    window.speechSynthesis.speak(uttEn);
+    window.speechSynthesis.speak(uttKo);
 }
 
 function nextConversation() {
