@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>한글 탐험대 🚀</title>
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Round+Square:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
@@ -16,6 +16,7 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            touch-action: none; /* Prevent scroll on drag for PWA */
         }
 
         /* ── Floating background decorations ── */
@@ -44,10 +45,10 @@
             max-width: 480px;
             background: #fff;
             border-radius: 32px;
-            padding: 32px 28px 36px;
+            padding: 32px 20px 36px;
             box-shadow: 0 24px 64px rgba(0,0,0,.18);
             text-align: center;
-            max-height: 90vh;
+            max-height: 95vh;
             overflow-y: auto;
         }
 
@@ -140,7 +141,7 @@
         }
 
         .emoji-box {
-            font-size: 80px;
+            font-size: 60px;
             line-height: 1;
             margin: 0px 0 10px;
             animation: popIn .4s cubic-bezier(.175,.885,.32,1.275);
@@ -151,92 +152,120 @@
             to   { transform: scale(1) rotate(0); opacity: 1; }
         }
 
-        .word-box {
-            font-size: 38px;
+        .question-label {
+            font-size: 18px;
             font-weight: 800;
-            color: #333;
-            margin-bottom: 6px;
+            color: #555;
+            margin-bottom: 18px;
+            background: #fff3cd;
+            padding: 8px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        /* ── Drag & Drop UI ── */
+        .drop-zones-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .char-block {
+            display: flex;
+            gap: 6px;
+            background: rgba(0,0,0,0.03);
+            padding: 10px;
+            border-radius: 15px;
+            border: 1px solid #eee;
+        }
+        .drop-slot {
+            width: 46px;
+            height: 46px;
+            border: 3px dashed #ccc;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            font-size: 26px;
+            font-weight: 800;
+            position: relative;
+            background: #fafafa;
+            transition: all 0.2s;
         }
-        .word-box .first-letter {
-            color: #ff6b6b;
-            font-size: 46px;
-            display: inline-block;
-            animation: pulse 1s ease infinite alternate;
-        }
-        .listen-btn {
+        .drop-slot.error-flash {
             background: #ffe0e0;
+            border-color: #e74c3c;
+            animation: wiggle 0.4s ease;
+        }
+        .drop-slot::after {
+            content: attr(data-expected);
+            color: #ddd; /* shadow letter */
+            position: absolute;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .drag-pool {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            min-height: 120px;
+            padding: 16px;
+            background: #f0f4f8;
+            border-radius: 20px;
+            margin-bottom: 15px;
+        }
+        .drag-item {
+            width: 46px;
+            height: 46px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 0 #ccc;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 800;
+            color: #333;
+            cursor: grab;
+            touch-action: none; /* Prevents scrolling when dragging */
+            z-index: 10;
+            user-select: none;
+        }
+        .drag-item:active { cursor: grabbing; }
+        
+        /* When inside drop-slot */
+        .drop-slot .drag-item {
+            box-shadow: none;
+            cursor: default;
+            z-index: 1; /* above shadow */
             border: none;
-            border-radius: 50%;
-            width: 40px; height: 40px;
-            font-size: 20px;
+            background: transparent;
+            transform: translateY(2px);
+        }
+
+        .listen-btn {
+            background: #e0f0ff;
+            color: #2980b9;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 800;
             cursor: pointer;
             transition: transform 0.2s;
-        }
-        .listen-btn:hover { transform: scale(1.1); }
-        .listen-btn:active { transform: scale(0.9); }
-
-        @keyframes pulse {
-            from { transform: scale(1); }
-            to   { transform: scale(1.15); }
-        }
-
-        .question-label {
-            font-size: 16px;
-            color: #999;
-            margin-bottom: 18px;
-        }
-
-        /* 2×2 choice grid */
-        .choices {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-        .choice-btn {
+            box-shadow: 0 4px 0 #b3d9ff;
             font-family: inherit;
-            font-size: 40px;
-            font-weight: 800;
-            padding: 14px 10px;
-            border: none;
-            border-radius: 22px;
-            cursor: pointer;
-            transition: transform .15s, box-shadow .15s;
-            box-shadow: 0 6px 0 rgba(0,0,0,.10);
-            line-height: 1;
         }
-        .choice-btn:nth-child(1) { background: #ffe0e0; color: #e74c3c; }
-        .choice-btn:nth-child(2) { background: #e0f0ff; color: #2980b9; }
-        .choice-btn:nth-child(3) { background: #e0ffe8; color: #27ae60; }
-        .choice-btn:nth-child(4) { background: #fff5e0; color: #e67e22; }
+        .listen-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #b3d9ff; }
+        .listen-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #b3d9ff; }
 
-        .choice-btn:hover { transform: translateY(-4px); box-shadow: 0 10px 0 rgba(0,0,0,.10); }
-        .choice-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.10); }
-
-        .choice-btn.correct {
-            background: #2ecc71 !important;
-            color: #fff !important;
-            animation: zoomPop .4s ease;
-        }
-        .choice-btn.wrong {
-            background: #e74c3c !important;
-            color: #fff !important;
-            animation: wiggle .45s ease;
-        }
-        .choice-btn.disabled { pointer-events: none; }
-
-        @keyframes zoomPop {
-            0%   { transform: scale(1); }
-            50%  { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
         @keyframes wiggle {
             0%,100% { transform: translateX(0); }
-            25%     { transform: translateX(-8px); }
-            75%     { transform: translateX(8px); }
+            25%     { transform: translateX(-6px); }
+            75%     { transform: translateX(6px); }
         }
 
         /* ── Feedback stamp ── */
@@ -251,19 +280,6 @@
         }
         .stamp.show { transform: translate(-50%,-50%) scale(1); }
         .stamp.gone { transform: translate(-50%,-50%) scale(0); transition: transform .2s ease; }
-
-        /* ── Hint after wrong ── */
-        .hint-bar {
-            margin-top: 14px;
-            padding: 10px 16px;
-            background: #fff3cd;
-            border-radius: 14px;
-            font-size: 16px;
-            color: #856404;
-            display: none;
-            animation: fadeIn .3s ease;
-        }
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
         /* ══════════════ LEVEL UP SCREEN ══════════════ */
         #level-screen { display: none; }
@@ -291,7 +307,7 @@
             margin-top: 10px;
         }
         .btn-main:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(255,107,107,.45); }
-        .btn-main:active { transform: translateY(1px); }
+        .btn-main:active { transform: translateY(1px); box-shadow: 0 4px 10px rgba(255,107,107,.45); }
 
         /* ── Floating particles ── */
         .particle {
@@ -318,7 +334,7 @@
     <div id="start-screen">
         <img src="티니핑1.jpg" alt="티니핑" class="character-img">
         <h1>한글 탐험대</h1>
-        <p class="tagline">티니핑과 함께 한글을 배워보아요! 🌟</p>
+        <p class="tagline">티니핑과 함께 한글을 조립해봐요! 🌟</p>
         
         <div class="api-key-container" style="margin-bottom: 20px;">
             <input type="password" id="apiKeyInput" placeholder="Gemini API Key 입력" style="padding: 12px; border-radius: 12px; border: 2px solid #a8edea; width: 85%; max-width: 320px; font-size: 16px; font-family: inherit; outline: none; text-align: center;">
@@ -328,8 +344,8 @@
         <div class="how-to">
             <strong>🎮 어떻게 해요?</strong><br>
             그림을 보고 소리를 들어보세요!<br>
-            그 단어의 <strong>첫 번째 글자</strong>를 골라요!<br>
-            단계별로 재미있게 한글을 배울 수 있어요. 💪
+            흩어진 자음과 모음을 <strong>끌어다 놓아</strong><br>
+            글자를 예쁘게 완성해주세요! 💪
         </div>
         <button class="btn-main" onclick="startGame()">시작하기! 🚀</button>
     </div>
@@ -353,14 +369,15 @@
             <div class="progress-bar" id="progressBar" style="width:0%"></div>
         </div>
         <img src="티니핑1.jpg" alt="티니핑" class="character-small">
+        
         <div class="emoji-box" id="emojiBox" onclick="speakCurrentWord()" title="소리 듣기">🍎</div>
-        <div class="word-box" id="wordBox">
-            <span id="wordText"></span>
-            <button class="listen-btn" onclick="speakCurrentWord()" title="소리 듣기">🔊</button>
-        </div>
-        <div class="question-label">이 단어의 <strong>첫 글자</strong>는 무엇일까요?</div>
-        <div class="choices" id="choicesGrid"></div>
-        <div class="hint-bar" id="hintBar"></div>
+        
+        <div class="question-label" id="questionLabel">알맞은 글자를 끌어다 놓으세요!</div>
+        
+        <div id="dropZonesContainer" class="drop-zones-container"></div>
+        <div id="dragPool" class="drag-pool"></div>
+
+        <button class="listen-btn" onclick="speakCurrentWord()">🔊 단어 다시 듣기</button>
     </div>
 
     <!-- ══ END SCREEN ══ -->
@@ -381,45 +398,78 @@
 <script>
 // ── Word bank (Step by step) ──────────────────────────────────────────────
 const WORDS_LVL1 = [ // 1글자
-    { emoji:'🌙', word:'달',     first:'ㄷ', hint:'밤하늘에 빛나요 🌙' },
-    { emoji:'🐻', word:'곰',     first:'ㄱ', hint:'숲속의 큰 동물이에요 🐻' },
-    { emoji:'책', word:'책',     first:'ㅊ', hint:'글자가 가득한 친구예요 📚' },
-    { emoji:'☕', word:'컵',     first:'ㅋ', hint:'음료를 마셔요 ☕' },
-    { emoji:'산', word:'산',     first:'ㅅ', hint:'나무가 많은 높은 곳이에요 ⛰️' }
+    { emoji:'🌙', word:'달',     hint:'밤하늘에 빛나요 🌙' },
+    { emoji:'🐻', word:'곰',     hint:'숲속의 큰 동물이에요 🐻' },
+    { emoji:'책', word:'책',     hint:'글자가 가득한 친구예요 📚' },
+    { emoji:'☕', word:'컵',     hint:'음료를 마셔요 ☕' },
+    { emoji:'산', word:'산',     hint:'나무가 많은 높은 곳이에요 ⛰️' }
 ];
 
 const WORDS_LVL2 = [ // 2글자
-    { emoji:'기린', word:'기린',   first:'ㄱ', hint:'목이 아주 긴 동물이에요 🦒' },
-    { emoji:'나비', word:'나비',   first:'ㄴ', hint:'꽃밭에서 날아다녀요 🦋' },
-    { emoji:'나무', word:'나무',   first:'ㄴ', hint:'숲에 있어요 🌲' },
-    { emoji:'딸기', word:'딸기',   first:'ㄸ', hint:'빨갛고 달콤한 과일이에요 🍓' }, // 된소리
-    { emoji:'사과', word:'사과',   first:'ㅅ', hint:'빨갛고 아삭아삭한 과일이에요 🍎' },
-    { emoji:'사자', word:'사자',   first:'ㅅ', hint:'"어흥!" 동물의 왕이에요 🦁' },
-    { emoji:'수박', word:'수박',   first:'ㅅ', hint:'여름에 먹는 시원한 과일이에요 🍉' },
-    { emoji:'피자', word:'피자',   first:'ㅍ', hint:'치즈가 쭉 늘어나요 🍕' },
-    { emoji:'포도', word:'포도',   first:'ㅍ', hint:'보라색 작은 과일들이에요 🍇' },
-    { emoji:'하마', word:'하마',   first:'ㅎ', hint:'물에서 사는 뚱뚱한 동물이에요 🦛' }
+    { emoji:'기린', word:'기린',   hint:'목이 아주 긴 동물이에요 🦒' },
+    { emoji:'나비', word:'나비',   hint:'꽃밭에서 날아다녀요 🦋' },
+    { emoji:'나무', word:'나무',   hint:'숲에 있어요 🌲' },
+    { emoji:'사과', word:'사과',   hint:'빨갛고 아삭아삭한 과일이에요 🍎' },
+    { emoji:'사자', word:'사자',   hint:'"어흥!" 동물의 왕이에요 🦁' },
+    { emoji:'수박', word:'수박',   hint:'여름에 먹는 시원한 과일이에요 🍉' },
+    { emoji:'피자', word:'피자',   hint:'치즈가 쭉 늘어나요 🍕' },
+    { emoji:'포도', word:'포도',   hint:'보라색 작은 과일들이에요 🍇' },
+    { emoji:'하마', word:'하마',   hint:'물에서 사는 뚱뚱한 동물이에요 🦛' }
 ];
 
 const WORDS_LVL3 = [ // 3글자 이상
-    { emoji:'고양이', word:'고양이', first:'ㄱ', hint:'"야옹!" 하고 울어요 🐱' },
-    { emoji:'바나나', word:'바나나', first:'ㅂ', hint:'노란 달콤한 과일이에요 🍌' },
-    { emoji:'자동차', word:'자동차', first:'ㅈ', hint:'"부릉부릉!" 달려요 🚗' },
-    { emoji:'코끼리', word:'코끼리', first:'ㅋ', hint:'코가 아주 길어요 🐘' },
-    { emoji:'무지개', word:'무지개', first:'ㅁ', hint:'비 온 뒤 하늘에 떠요 🌈' },
-    { emoji:'호랑이', word:'호랑이', first:'ㅎ', hint:'"어흥!" 줄무늬가 있어요 🐯' },
-    { emoji:'오징어', word:'오징어', first:'ㅇ', hint:'다리가 열 개예요 🦑' },
-    { emoji:'강아지', word:'강아지', first:'ㄱ', hint:'"멍멍!" 하고 짖어요 🐶' }
+    { emoji:'고양이', word:'고양이', hint:'"야옹!" 하고 울어요 🐱' },
+    { emoji:'바나나', word:'바나나', hint:'노란 달콤한 과일이에요 🍌' },
+    { emoji:'자동차', word:'자동차', hint:'"부릉부릉!" 달려요 🚗' },
+    { emoji:'코끼리', word:'코끼리', hint:'코가 아주 길어요 🐘' },
+    { emoji:'무지개', word:'무지개', hint:'비 온 뒤 하늘에 떠요 🌈' },
+    { emoji:'호랑이', word:'호랑이', hint:'"어흥!" 줄무늬가 있어요 🐯' },
+    { emoji:'강아지', word:'강아지', hint:'"멍멍!" 하고 짖어요 🐶' }
 ];
 
-const ALL_CONSONANTS = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㄲ','ㄸ','ㅃ','ㅆ','ㅉ'];
+const DISTRACTORS = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㅏ','ㅓ','ㅗ','ㅜ','ㅡ','ㅣ','ㅐ','ㅔ'];
+const CHOSEONG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+const JUNGSEONG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+const JONGSEONG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+
+function decomposeHangul(word) {
+    let result = [];
+    for (let i = 0; i < word.length; i++) {
+        let charCode = word.charCodeAt(i);
+        if (charCode >= 0xAC00 && charCode <= 0xD7A3) {
+            let offset = charCode - 0xAC00;
+            let jongIdx = offset % 28;
+            let jungIdx = Math.floor(offset / 28) % 21;
+            let choIdx = Math.floor(offset / 588);
+            
+            let charParts = [];
+            charParts.push({ char: CHOSEONG[choIdx], type: 'cho' });
+            charParts.push({ char: JUNGSEONG[jungIdx], type: 'jung' });
+            if (jongIdx > 0) {
+                charParts.push({ char: JONGSEONG[jongIdx], type: 'jong' });
+            }
+            result.push(charParts);
+        } else {
+            result.push([{ char: word[i], type: 'other' }]);
+        }
+    }
+    return result;
+}
+
 const Q_PER_LEVEL = 5;
 
 // ── State ──
 let currentLevel = 1;
-let queue = [], idx = 0, score = 0, lives = 3, answered = false;
+let queue = [], idx = 0, score = 0, lives = 3;
 let audioCtx = null;
 let currentWordObj = null;
+
+// Game logic specific
+let totalSlots = 0;
+let filledSlots = 0;
+let draggedEl = null;
+let origParent = null;
+let origNextSibling = null;
 
 // ── Audio (Beeps) ──
 function ctx() {
@@ -488,7 +538,6 @@ async function speakText(text) {
 
         if (data.candidates && data.candidates[0].content.parts) {
             const parts = data.candidates[0].content.parts;
-            // Find inlineData with audio
             const audioPart = parts.find(p => p.inlineData && p.inlineData.mimeType.startsWith('audio/'));
             
             if (audioPart) {
@@ -532,10 +581,6 @@ function shuffle(a) {
         [b[i],b[j]] = [b[j],b[i]];
     }
     return b;
-}
-function makeChoices(correct) {
-    const pool = ALL_CONSONANTS.filter(c => c !== correct);
-    return shuffle([correct, ...shuffle(pool).slice(0,3)]);
 }
 function getLevelWords(level) {
     if (level === 1) return shuffle(WORDS_LVL1).slice(0, Q_PER_LEVEL);
@@ -589,21 +634,19 @@ function showLevelScreen() {
     }
     document.getElementById('levelTitle').textContent = currentLevel + '단계 시작!';
     let desc = '';
-    if (currentLevel === 1) desc = '짧은 1글자 단어를 맞춰보아요! 🐣';
+    if (currentLevel === 1) desc = '짧은 1글자 단어를 조립해보아요! 🐣';
     else if (currentLevel === 2) desc = '이제 2글자 단어예요! 할 수 있죠? 🐥';
     else if (currentLevel === 3) desc = '마지막 3단계! 긴 단어에 도전해요! 🦅';
     
     document.getElementById('levelDesc').textContent = desc;
     show('level-screen');
     
-    // 티니핑 응원 소리
     speakText(currentLevel + "단계 시작! 파이팅!");
 }
 
 function startLevel() {
     queue = getLevelWords(currentLevel);
     idx = 0;
-    answered = false;
     show('game-screen');
     renderQuestion();
 }
@@ -613,14 +656,12 @@ function renderQuestion() {
         if (lives <= 0) {
             endGame();
         } else {
-            // Level complete
             currentLevel++;
             showLevelScreen();
         }
         return; 
     }
 
-    answered = false;
     const q = queue[idx];
     currentWordObj = q;
 
@@ -628,19 +669,15 @@ function renderQuestion() {
     document.getElementById('levelVal').textContent = currentLevel + '단계';
     document.getElementById('progressBar').style.width = (idx / Q_PER_LEVEL * 100) + '%';
     document.getElementById('scoreVal').textContent = score;
-    document.getElementById('livesVal').textContent =
-        '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+    document.getElementById('livesVal').textContent = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
 
-    // Emoji (re-trigger animation)
+    // Emoji
     const eb = document.getElementById('emojiBox');
     eb.style.animation = 'none';
     void eb.offsetWidth;
     eb.style.animation = 'popIn .4s cubic-bezier(.175,.885,.32,1.275)';
     
-    // 만약 emoji가 1글자가 아니고 단어면, 첫 글자만 가져와서 보여주거나 사진이 없으니 글씨로 대체.
-    // WORDS_LVL1 등에 있는 emoji를 그대로 사용.
     let displayChar = q.emoji;
-    // 이모지가 아닌 한글 텍스트인 경우 스타일 조정
     if (![...displayChar].some(char => char.codePointAt(0) > 0x1F000)) {
         eb.style.fontSize = '60px';
     } else {
@@ -648,61 +685,162 @@ function renderQuestion() {
     }
     eb.textContent = displayChar;
 
-    // Word — highlight first letter
-    const wb = document.getElementById('wordText');
-    const rest = q.word.slice(1);
-    wb.innerHTML = `<span class="first-letter">${q.word[0]}</span>${rest}`;
+    // Setup Drag & Drop UI
+    const decomposed = decomposeHangul(q.word);
+    const dzContainer = document.getElementById('dropZonesContainer');
+    const dragPool = document.getElementById('dragPool');
+    dzContainer.innerHTML = '';
+    dragPool.innerHTML = '';
 
-    // Hint bar
-    const hb = document.getElementById('hintBar');
-    hb.style.display = 'none';
-    hb.textContent = '';
+    totalSlots = 0;
+    filledSlots = 0;
+    let expectedChars = [];
 
-    // Choices
-    const grid = document.getElementById('choicesGrid');
-    grid.innerHTML = '';
-    makeChoices(q.first).forEach(letter => {
-        const btn = document.createElement('button');
-        btn.className = 'choice-btn';
-        btn.textContent = letter;
-        btn.onclick = () => check(letter, q, btn);
-        grid.appendChild(btn);
+    decomposed.forEach(charParts => {
+        const charBlock = document.createElement('div');
+        charBlock.className = 'char-block';
+        
+        charParts.forEach(part => {
+            const slot = document.createElement('div');
+            slot.className = 'drop-slot';
+            slot.dataset.expected = part.char;
+            charBlock.appendChild(slot);
+            totalSlots++;
+            expectedChars.push(part.char);
+        });
+        dzContainer.appendChild(charBlock);
     });
 
-    // 자동 읽어주기
-    setTimeout(speakCurrentWord, 300);
+    // Add distractors (2~4 random chars)
+    for(let i=0; i<4; i++) {
+        expectedChars.push(DISTRACTORS[Math.floor(Math.random() * DISTRACTORS.length)]);
+    }
+    expectedChars = shuffle(expectedChars);
+
+    expectedChars.forEach(char => {
+        const dragItem = document.createElement('div');
+        dragItem.className = 'drag-item';
+        dragItem.textContent = char;
+        dragItem.addEventListener('pointerdown', onPointerDown);
+        dragPool.appendChild(dragItem);
+    });
+
+    // Automatically read the word
+    setTimeout(() => {
+        speakText(q.word);
+    }, 500);
 }
 
-function check(selected, q, btn) {
-    if (answered) return;
-    answered = true;
+// ── Drag & Drop Logic (Pointer Events) ──
+function onPointerDown(e) {
+    if (!e.target.classList.contains('drag-item')) return;
+    
+    // Prevent dragging if already placed
+    if (e.target.parentNode.classList.contains('drop-slot')) return;
 
-    document.querySelectorAll('.choice-btn').forEach(b => b.classList.add('disabled'));
+    draggedEl = e.target;
+    origParent = draggedEl.parentNode;
+    origNextSibling = draggedEl.nextSibling;
+    
+    const rect = draggedEl.getBoundingClientRect();
+    draggedEl.style.position = 'fixed'; 
+    draggedEl.style.zIndex = 1000;
+    draggedEl.style.width = rect.width + 'px';
+    draggedEl.style.height = rect.height + 'px';
+    draggedEl.style.margin = '0';
+    
+    moveAt(e.clientX, e.clientY);
+    
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+    
+    draggedEl.setPointerCapture(e.pointerId);
+}
 
-    if (selected === q.first) {
-        btn.classList.add('correct');
-        score += 10;
-        soundCorrect();
-        showStamp('🎉');
-        burst();
-        speakText('정답!');
-        setTimeout(next, 1300);
+function moveAt(clientX, clientY) {
+    draggedEl.style.left = clientX - draggedEl.offsetWidth / 2 + 'px';
+    draggedEl.style.top = clientY - draggedEl.offsetHeight / 2 + 'px';
+}
+
+function onPointerMove(e) {
+    if (!draggedEl) return;
+    moveAt(e.clientX, e.clientY);
+}
+
+function onPointerUp(e) {
+    if (!draggedEl) return;
+    document.removeEventListener('pointermove', onPointerMove);
+    document.removeEventListener('pointerup', onPointerUp);
+    draggedEl.releasePointerCapture(e.pointerId);
+    
+    // Temporarily hide to find the element underneath
+    draggedEl.style.display = 'none';
+    let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+    draggedEl.style.display = 'inline-flex';
+    
+    let dropSlot = elemBelow ? elemBelow.closest('.drop-slot') : null;
+    
+    if (dropSlot && !dropSlot.hasChildNodes()) {
+        let expected = dropSlot.dataset.expected;
+        if (draggedEl.textContent === expected) {
+            // Correct Drop
+            draggedEl.style.position = 'static';
+            draggedEl.style.width = '100%';
+            draggedEl.style.height = '100%';
+            draggedEl.classList.remove('drag-item');
+            draggedEl.style.cursor = 'default';
+            dropSlot.appendChild(draggedEl);
+            soundCorrect();
+            
+            filledSlots++;
+            if (filledSlots === totalSlots) {
+                // Whole word completed!
+                score += 10;
+                showStamp('🎉');
+                burst();
+                speakText(`잘했습니다! 정답입니다! ${currentWordObj.word}`);
+                
+                // Disable all remaining items
+                document.querySelectorAll('.drag-item').forEach(i => i.style.pointerEvents = 'none');
+                
+                setTimeout(next, 3500); // give enough time to read the full string
+            }
+        } else {
+            // Wrong Drop
+            lives--;
+            document.getElementById('livesVal').textContent = '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, 3 - lives));
+            
+            dropSlot.classList.add('error-flash');
+            setTimeout(() => dropSlot.classList.remove('error-flash'), 500);
+            soundWrong();
+            speakText("틀렸어요, 다시 찾아보세요.");
+            
+            if (lives <= 0) {
+                setTimeout(endGame, 1000);
+            }
+            
+            returnToPool();
+        }
     } else {
-        btn.classList.add('wrong');
-        lives--;
-        // Reveal correct
-        document.querySelectorAll('.choice-btn').forEach(b => {
-            if (b.textContent === q.first) b.classList.add('correct');
-        });
-        soundWrong();
-        showStamp('😢');
-        // Show hint
-        const hb = document.getElementById('hintBar');
-        hb.textContent = '💡 정답: ' + q.first + '  |  ' + q.hint;
-        hb.style.display = 'block';
-        speakText('아쉽네요. 정답은 ' + q.first + ' 입니다.');
-        
-        setTimeout(next, 2500);
+        // Dropped outside
+        returnToPool();
+    }
+    
+    draggedEl = null;
+}
+
+function returnToPool() {
+    draggedEl.style.position = 'static';
+    draggedEl.style.left = '';
+    draggedEl.style.top = '';
+    draggedEl.style.zIndex = '';
+    draggedEl.style.width = '46px';
+    draggedEl.style.height = '46px';
+    
+    if (origNextSibling) {
+        origParent.insertBefore(draggedEl, origNextSibling);
+    } else {
+        origParent.appendChild(draggedEl);
     }
 }
 
@@ -716,12 +854,12 @@ function endGame() {
     burst();
     setTimeout(burst, 400);
 
-    const max = 3 * Q_PER_LEVEL * 10; // 3 levels * 5 q * 10
+    const max = 3 * Q_PER_LEVEL * 10;
     const pct = score / max;
     let stars, title, msg;
     if (pct >= .9) {
         stars='⭐⭐⭐'; title='완벽해요! 🏆';
-        msg = '한글 탐험 완료!\n진짜 한글 영웅이에요! 🦸';
+        msg = '한글 조립 완료!\n진짜 한글 영웅이에요! 🦸';
     } else if (pct >= .6) {
         stars='⭐⭐'; title='잘 했어요! 🎉';
         msg = '조금 더 연습하면 완벽해질 거예요!\n파이팅! 💪';
