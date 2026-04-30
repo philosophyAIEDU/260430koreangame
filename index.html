@@ -718,6 +718,8 @@ function moveAt(clientX, clientY) {
 function onPointerMove(e) {
     if (!draggedEl) return;
     moveAt(e.clientX, e.clientY);
+}
+
 function onPointerUp(e) {
     if (!draggedEl) return;
     document.removeEventListener('pointermove', onPointerMove);
