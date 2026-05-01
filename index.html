@@ -510,6 +510,9 @@
 
     <!-- ══ LEVEL SCREEN ══ -->
     <div id="level-screen" class="screen" style="display:none">
+        <div class="top-bar" style="justify-content: flex-end;">
+            <button class="btn-home" onclick="showStart()">🏠 홈</button>
+        </div>
         <img src="티니핑1.jpg" alt="캐릭터" class="character-img dynamic-char">
         <h1 id="levelTitle">레벨 업!</h1>
         <p class="level-desc" id="levelDesc">다음 단계로 넘어가볼까요?</p>
@@ -523,6 +526,7 @@
             <div class="score-label">⭐ <span id="scoreVal">0</span></div>
             <div class="combo-badge" id="comboBadge">🔥 콤보!</div>
             <div class="lives-label" id="livesVal">❤️❤️❤️</div>
+            <button class="btn-home" onclick="showStart()">🏠 홈</button>
         </div>
         <div class="progress-wrap">
             <div class="progress-track"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
@@ -536,7 +540,7 @@
         <div class="game-actions">
             <button class="btn-icon" onclick="speakCurrentWord()">🔊 듣기</button>
             <button class="btn-icon" onclick="toggleHint()">💡 힌트</button>
-            <button class="btn-home" onclick="showModeSelect()">🏠 홈</button>
+            <button class="btn-home" onclick="showModeSelect()">🧩 메뉴</button>
         </div>
     </div>
 
@@ -545,7 +549,7 @@
         <div class="top-bar">
             <div class="level-badge" id="writeLevelVal">1단계</div>
             <div class="score-label">⭐ <span id="writeScoreVal">0</span></div>
-            <button class="btn-home" onclick="showModeSelect()">🏠</button>
+            <button class="btn-home" onclick="showStart()">🏠 홈</button>
         </div>
         <div class="progress-wrap">
             <div class="progress-track"><div class="progress-bar" id="writeProgressBar" style="width:0%"></div></div>
@@ -554,18 +558,18 @@
         <div class="emoji-box" id="writeEmojiBox" onclick="speakCurrentWord()">🍎</div>
         <div class="write-info" id="writeWordDisplay">달</div>
         <div class="question-label">그림자를 따라 예쁘게 써보세요!</div>
-        <div class="canvas-container"><canvas id="writingCanvas"></canvas></div>
-        <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+        <div style="display:flex; gap:10px; justify-content:center; margin-bottom:10px;">
             <button class="btn-sub" style="flex:1; background:#eee; color:#666;" onclick="clearCanvas()">🧹 지우기</button>
             <button class="btn-main" style="flex:2; margin-top:0; padding:11px 18px; font-size:16px;" onclick="checkWriting()">다 썼어요! ✅</button>
         </div>
+        <div class="canvas-container"><canvas id="writingCanvas"></canvas></div>
     </div>
 
     <!-- ══ COLORING GAME SCREEN ══ -->
     <div id="coloring-screen" class="screen" style="display:none">
         <div class="top-bar">
             <div class="level-badge" style="background:#fff3cd; color:#e67e22;">🎨 색칠 놀이</div>
-            <button class="btn-home" onclick="showModeSelect()">🏠 홈</button>
+            <button class="btn-home" onclick="showStart()">🏠 홈</button>
         </div>
         <div class="picture-selector" id="pictureSelector"></div>
         <div class="coloring-toolbar">
@@ -583,7 +587,7 @@
     <div id="alphabet-screen" class="screen" style="display:none">
         <div class="top-bar">
             <div class="level-badge" style="background:#e8f8f5; color:#16a085;">🚂 알파벳 기차</div>
-            <button class="btn-home" onclick="showModeSelect()">🏠 홈</button>
+            <button class="btn-home" onclick="showStart()">🏠 홈</button>
         </div>
         <div class="alphabet-progress">
             진행도 <span id="alphaProgressText">0 / 26</span>
@@ -600,7 +604,7 @@
     <div id="conversation-screen" class="screen" style="display:none">
         <div class="top-bar">
             <div class="level-badge" style="background:#e0ebff; color:#0984e3;">🗣️ 기초 회화</div>
-            <button class="btn-home" onclick="showModeSelect()">🏠 홈</button>
+            <button class="btn-home" onclick="showStart()">🏠 홈</button>
         </div>
         <div class="emoji-box" id="convEmojiBox" style="font-size: 100px; margin: 30px 0;">👋</div>
         <div class="question-label" id="convKorean" style="font-size: 18px; background: #ffeaa7;">안녕! / 잘 가!</div>
