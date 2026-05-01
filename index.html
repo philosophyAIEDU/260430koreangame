@@ -459,7 +459,7 @@
 
     <!-- ══ START SCREEN ══ -->
     <div id="start-screen" class="screen">
-        <img src="티니핑1.jpg" alt="티니핑" class="character-img">
+        <img src="티니핑1.jpg" alt="캐릭터" class="character-img dynamic-char">
         <h1>놀면서 배워요!</h1>
         <p class="tagline">티니핑과 함께 한글을 배워봐요! 🌟</p>
         <div id="highScoreBadge" class="high-score-badge" style="display:none">
@@ -476,7 +476,7 @@
 
     <!-- ══ MODE SELECT SCREEN ══ -->
     <div id="mode-screen" class="screen" style="display:none">
-        <img src="티니핑1.jpg" alt="티니핑" class="character-small">
+        <img src="티니핑1.jpg" alt="캐릭터" class="character-small dynamic-char">
         <h2>어떤 놀이 할까요?</h2>
         <div class="mode-grid">
             <button class="mode-card assembly" onclick="selectMode('assembly')">
@@ -510,7 +510,7 @@
 
     <!-- ══ LEVEL SCREEN ══ -->
     <div id="level-screen" class="screen" style="display:none">
-        <img src="티니핑1.jpg" alt="티니핑" class="character-img">
+        <img src="티니핑1.jpg" alt="캐릭터" class="character-img dynamic-char">
         <h1 id="levelTitle">레벨 업!</h1>
         <p class="level-desc" id="levelDesc">다음 단계로 넘어가볼까요?</p>
         <button class="btn-main" onclick="startLevel()">다음 단계 출발! 🎈</button>
@@ -614,7 +614,7 @@
 
     <!-- ══ END SCREEN ══ -->
     <div id="end-screen" class="screen" style="display:none">
-        <img src="티니핑1.jpg" alt="티니핑" class="character-img">
+        <img src="티니핑1.jpg" alt="캐릭터" class="character-img dynamic-char">
         <div class="end-title" id="endTitle">대단해요!</div>
         <div class="stars-row" id="endStars">⭐⭐⭐</div>
         <div class="end-stats">
@@ -808,7 +808,12 @@ function saveHighScore() {
 
 // ── Screen Helpers ────────────────────────────────────────────────────────
 const SCREENS = ['start-screen','mode-screen','level-screen','game-screen','writing-screen','coloring-screen','alphabet-screen','conversation-screen','end-screen'];
+const CHAR_IMAGES = ['티니핑1.jpg', 'pikachu.png', 'squirtle.png'];
+
 function show(id) {
+    const randChar = CHAR_IMAGES[Math.floor(Math.random() * CHAR_IMAGES.length)];
+    document.querySelectorAll('.dynamic-char').forEach(img => img.src = randChar);
+    
     SCREENS.forEach(s => {
         const el = document.getElementById(s);
         if (!el) return;
