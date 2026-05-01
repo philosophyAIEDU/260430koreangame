@@ -448,6 +448,59 @@
             0%   { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
             100% { transform: translateY(-220px) scale(0) rotate(30deg); opacity: 0; }
         }
+
+        /* Fullscreen & Coloring UI */
+        .fullscreen-mode {
+            position: fixed !important; top: 0 !important; left: 0 !important;
+            width: 100vw !important; height: 100vh !important;
+            max-width: none !important; max-height: none !important;
+            margin: 0 !important; padding: 10px !important;
+            border-radius: 0 !important; z-index: 9999 !important;
+            background: white !important;
+        }
+        .fullscreen-mode #coloring-screen { height: 100%; display: flex; flex-direction: column; }
+        .fullscreen-mode .coloring-canvas-container { flex: 1; height: auto !important; }
+        
+        .coloring-canvas-container {
+            position: relative; width: 100%; aspect-ratio: 1/1;
+            background: #fff; border: 2px solid #eee; border-radius: 18px;
+            overflow: hidden; touch-action: none; margin: 10px 0;
+        }
+        #coloringCanvas, #outlineCanvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
+        #outlineCanvas { pointer-events: none; mix-blend-mode: multiply; }
+        
+        .coloring-top-actions {
+            display: flex; gap: 8px; margin-bottom: 10px;
+        }
+        .btn-fullscreen {
+            background: #f1f2f6; border: none; border-radius: 12px;
+            padding: 8px 12px; font-size: 14px; font-weight: bold;
+            cursor: pointer; display: flex; align-items: center; gap: 4px;
+        }
+
+        /* Matching Game UI */
+        .matching-img-container {
+            width: 100%; aspect-ratio: 1/1;
+            background: #fff; border: 4px solid var(--light); border-radius: 24px;
+            margin: 15px 0; position: relative; overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        }
+        #matchingCanvas { width: 100%; height: 100%; }
+        .options-grid {
+            display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 10px;
+        }
+        .option-btn {
+            background: #fff; border: 3px solid var(--light); border-radius: 20px;
+            padding: 16px; font-size: 20px; font-weight: 800; color: var(--dark);
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 0 var(--light);
+        }
+        .option-btn:hover { transform: translateY(-2px); border-color: var(--sky); }
+        .option-btn:active { transform: translateY(2px); box-shadow: none; }
+        .option-btn.correct { background: var(--teal); color: white; border-color: #16a085; }
+        .option-btn.wrong { background: var(--coral); color: white; border-color: #c0392b; opacity: 0.6; }
     </style>
 </head>
 <body>
@@ -503,6 +556,11 @@
                 <span class="mode-icon">🗣️</span>
                 <div class="mode-name">기초 회화</div>
                 <div class="mode-desc">영어로 말해봐요</div>
+            </button>
+            <button class="mode-card matching" style="background: linear-gradient(135deg, #fff3cd, #ffeaa7);" onclick="selectMode('matching')">
+                <span class="mode-icon">🔍</span>
+                <div class="mode-name">캐릭터 맞추기</div>
+                <div class="mode-desc">누구일까요?</div>
             </button>
         </div>
         <button class="btn-home" onclick="showStart()">← 처음으로</button>
@@ -560,6 +618,7 @@
         <div class="question-label">그림자를 따라 예쁘게 써보세요!</div>
         <div style="display:flex; gap:10px; justify-content:center; margin-bottom:10px;">
             <button class="btn-sub" style="flex:1; background:#eee; color:#666;" onclick="clearCanvas()">🧹 지우기</button>
+            <button class="btn-sub" style="flex:1; background:#e0f0ff; color:#2980b9;" onclick="saveWriting()">💾 저장</button>
             <button class="btn-main" style="flex:2; margin-top:0; padding:11px 18px; font-size:16px;" onclick="checkWriting()">다 썼어요! ✅</button>
         </div>
         <div class="canvas-container"><canvas id="writingCanvas"></canvas></div>
@@ -569,17 +628,25 @@
     <div id="coloring-screen" class="screen" style="display:none">
         <div class="top-bar">
             <div class="level-badge" style="background:#fff3cd; color:#e67e22;">🎨 색칠 놀이</div>
-            <button class="btn-home" onclick="showStart()">🏠 홈</button>
+            <div style="display:flex; gap:6px;">
+                <button class="btn-fullscreen" onclick="toggleFullScreen()" title="전체화면">🔳 크게보기</button>
+                <button class="btn-home" onclick="showStart()">🏠 홈</button>
+            </div>
         </div>
+        
+        <div class="coloring-top-actions">
+            <button class="btn-sub" style="flex:1; background:#eee; color:#666; margin:0;" onclick="clearColoringCanvas()">🧹 지우기</button>
+            <button class="btn-main" style="flex:1.5; margin:0; padding:8px 12px; font-size:15px;" onclick="saveColoring()">💾 저장하기</button>
+        </div>
+
         <div class="picture-selector" id="pictureSelector"></div>
         <div class="coloring-toolbar">
             <div class="color-palette" id="colorPalette"></div>
             <div class="brush-selector" id="brushSelector"></div>
         </div>
-        <div class="coloring-canvas-container"><canvas id="coloringCanvas"></canvas></div>
-        <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
-            <button class="btn-sub" style="flex:1; background:#eee; color:#666;" onclick="clearColoringCanvas()">🧹 지우기</button>
-            <button class="btn-main" style="flex:2; margin-top:0; padding:11px 18px; font-size:16px;" onclick="saveColoring()">💾 저장</button>
+        <div class="coloring-canvas-container">
+            <canvas id="coloringCanvas"></canvas>
+            <canvas id="outlineCanvas"></canvas>
         </div>
     </div>
 
@@ -598,6 +665,24 @@
             <div class="train-engine">🚂</div>
         </div>
         <div class="alphabet-pool" id="alphabetPool"></div>
+    </div>
+
+    <!-- ══ CHARACTER MATCHING SCREEN ══ -->
+    <div id="matching-screen" class="screen" style="display:none">
+        <div class="top-bar">
+            <div class="level-badge" style="background:#fff3cd; color:#e67e22;">🔍 캐릭터 맞추기</div>
+            <div class="score-label">⭐ <span id="matchingScoreVal">0</span></div>
+            <button class="btn-home" onclick="showStart()">🏠 홈</button>
+        </div>
+        <div class="progress-wrap">
+            <div class="progress-track"><div class="progress-bar" id="matchingProgressBar" style="width:0%"></div></div>
+            <div class="progress-text" id="matchingProgressText">0/10</div>
+        </div>
+        <div class="question-label">이 캐릭터의 이름은 무엇일까요?</div>
+        <div class="matching-img-container">
+            <canvas id="matchingCanvas"></canvas>
+        </div>
+        <div class="options-grid" id="matchingOptions"></div>
     </div>
 
     <!-- ══ CONVERSATION SCREEN ══ -->
@@ -811,7 +896,7 @@ function saveHighScore() {
 }
 
 // ── Screen Helpers ────────────────────────────────────────────────────────
-const SCREENS = ['start-screen','mode-screen','level-screen','game-screen','writing-screen','coloring-screen','alphabet-screen','conversation-screen','end-screen'];
+const SCREENS = ['start-screen','mode-screen','level-screen','game-screen','writing-screen','coloring-screen','alphabet-screen','conversation-screen','matching-screen','end-screen'];
 const CHAR_IMAGES = ['티니핑1.jpg', '1.jpg', '2.jpg', '3.jpg'];
 
 function show(id) {
@@ -862,6 +947,7 @@ function selectMode(mode) {
     if (mode === 'coloring') initColoringGame();
     else if (mode === 'alphabet') initAlphabetGame();
     else if (mode === 'conversation') initConversationGame();
+    else if (mode === 'matching') initMatchingGame();
     else startGame();
 }
 
@@ -1148,6 +1234,34 @@ function checkWriting() {
     soundCorrect(); showStamp('⭕'); burst(); score += 10;
     speakText('정답입니다! ' + currentWordObj.word + ' 잘 썼어요!');
     setTimeout(() => { idx++; renderWritingQuestion(); }, 1500);
+}
+async function saveWriting() {
+    const temp = document.createElement('canvas');
+    temp.width = canvas.width; temp.height = canvas.height;
+    const tctx = temp.getContext('2d');
+    tctx.fillStyle = '#ffffff'; tctx.fillRect(0, 0, temp.width, temp.height);
+    tctx.drawImage(canvas, 0, 0);
+    
+    const dataUrl = temp.toDataURL('image/png');
+    const fileName = `한글쓰기_${currentWordObj.word}_${Date.now()}.png`;
+    
+    try {
+        if (navigator.share && navigator.canShare) {
+            const blob = await (await fetch(dataUrl)).blob();
+            const file = new File([blob], fileName, { type: 'image/png' });
+            if (navigator.canShare({ files: [file] })) {
+                await navigator.share({ files: [file], title: '한글 쓰기', text: `${currentWordObj.word}를 썼어요!` });
+                return;
+            }
+        }
+        const link = document.createElement('a');
+        link.download = fileName; link.href = dataUrl; link.click();
+        speakText('그림을 저장했어요!');
+    } catch(e) {
+        const link = document.createElement('a');
+        link.download = fileName; link.href = dataUrl; link.click();
+    }
+    burst();
 }
 
 // ── Coloring Game ─────────────────────────────────────────────────────────
@@ -1512,7 +1626,32 @@ const COLORING_PICTURES = [
         c.beginPath(); c.ellipse(159,106,6,5,0,0,Math.PI*2); c.stroke();
         // Door handle
         c.lineWidth=2; c.beginPath(); c.arc(108,122,7,0,Math.PI*2); c.stroke(); c.lineWidth=4;
-    }}
+    }},
+    { id:'tiniping1', name:'티니핑 1 ✨', image:'티니핑1.jpg' },
+    { id:'princess', name:'프린세스 👑', image:'프린세스 하츄핑.jpg' },
+    { id:'gaegul', name:'깨굴핑 🐸', image:'깨굴핑.jpg' },
+    { id:'butterfly2', name:'나비핑 🦋', image:'나비핑.jpg' },
+    { id:'diamond', name:'다이아나핑 💎', image:'다이아나핑.jpg' },
+    { id:'longlong', name:'롱롱핑 🐉', image:'롱롱핑.jpg' },
+    { id:'poni', name:'뽀니핑 🐎', image:'뽀니핑.jpg' },
+    { id:'bbodeuk', name:'뽀득핑 ✨', image:'뽀득핑.jpg' },
+    { id:'sappun', name:'사뿐핑 🩰', image:'사뿐핑.jpg' },
+    { id:'charles', name:'샤를핑 🦢', image:'샤를핑.jpg' },
+    { id:'shushu', name:'슈슈핑 👒', image:'슈슈핑.jpg' },
+    { id:'snow', name:'스노우핑 ❄️', image:'스노우핑.jpg' },
+    { id:'silk', name:'실크핑 🎀', image:'실크핑.jpg' },
+    { id:'areum', name:'아름핑 🌸', image:'아름핑.jpg' },
+    { id:'yaong', name:'야옹핑 🐱', image:'야옹핑.jpg' },
+    { id:'iseul', name:'이슬핑 💧', image:'이슬핑.jpg' },
+    { id:'eclipse', name:'이클립스핑 🌑', image:'이클립스핑.jpg' },
+    { id:'gentle', name:'젠틀핑 🎩', image:'젠틀핑.jpg' },
+    { id:'charming', name:'차밍핑 ✨', image:'차밍핑.jpg' },
+    { id:'coolcool', name:'쿨쿨핑 💤', image:'쿨쿨핑.jpg' },
+    { id:'qping', name:'큐핑 🏹', image:'큐핑.jpg' },
+    { id:'trot', name:'트롯핑 🎵', image:'트롯핑.jpg' },
+    { id:'char1', name:'티니핑 A ✨', image:'1.jpg' },
+    { id:'char2', name:'티니핑 B 🌟', image:'2.jpg' },
+    { id:'char3', name:'티니핑 C 🎀', image:'3.jpg' }
 ];
 
 const COLORS = [
@@ -1525,7 +1664,7 @@ const BRUSH_SIZES = [10, 20, 34];
 let selectedColor = COLORS[0];
 let brushSize = BRUSH_SIZES[1];
 let isEraser = false;
-let colorCanvas, colorCtx;
+let colorCanvas, colorCtx, outlineCanvas, outlineCtx;
 let isColoring = false, cLastX = 0, cLastY = 0;
 let currentPicture = COLORING_PICTURES[0];
 
@@ -1589,11 +1728,10 @@ function initColoringGame() {
 
     colorCanvas = document.getElementById('coloringCanvas');
     colorCtx = colorCanvas.getContext('2d');
-    const size = colorCanvas.parentElement.offsetWidth;
-    colorCanvas.width = size * 2; colorCanvas.height = size * 2;
-    colorCanvas.style.width = size + 'px'; colorCanvas.style.height = size + 'px';
-    colorCtx.scale(2, 2);
-    colorCtx.lineJoin = 'round'; colorCtx.lineCap = 'round';
+    outlineCanvas = document.getElementById('outlineCanvas');
+    outlineCtx = outlineCanvas.getContext('2d');
+    
+    resizeColoringCanvas();
 
     colorCanvas.removeEventListener('pointerdown', startColoring);
     colorCanvas.removeEventListener('pointermove', doColoring);
@@ -1608,17 +1746,48 @@ function initColoringGame() {
     speakText('신나는 색칠 놀이! 예쁘게 색칠해봐요!');
 }
 
+function resizeColoringCanvas() {
+    const size = colorCanvas.parentElement.offsetWidth;
+    [colorCanvas, outlineCanvas].forEach(canv => {
+        canv.width = size * 2; canv.height = size * 2;
+        canv.style.width = size + 'px'; canv.style.height = size + 'px';
+        const ctx = canv.getContext('2d');
+        ctx.scale(2, 2);
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    });
+}
+
+function toggleFullScreen() {
+    const card = document.querySelector('.game-card');
+    const isFull = card.classList.toggle('fullscreen-mode');
+    document.body.style.overflow = isFull ? 'hidden' : 'hidden'; // Ensure hidden either way
+    
+    // Resize canvas after layout shift
+    setTimeout(() => {
+        resizeColoringCanvas();
+        clearColoringCanvas(); // Need to redraw outline after resize
+    }, 100);
+}
+
 function clearColoringCanvas() {
     const size = colorCanvas.width / 2;
     colorCtx.clearRect(0, 0, size, size);
-    colorCtx.save();
-    colorCtx.globalCompositeOperation = 'source-over';
-    colorCtx.lineWidth = 4; colorCtx.strokeStyle = '#333'; colorCtx.fillStyle = '#333';
-    colorCtx.lineJoin = 'round'; colorCtx.lineCap = 'round';
-    colorCtx.scale(size / 200, size / 200);
-    colorCtx.translate(10, 10);
-    currentPicture.draw(colorCtx);
-    colorCtx.restore();
+    outlineCtx.clearRect(0, 0, size, size);
+    
+    if (currentPicture.image) {
+        const img = new Image();
+        img.src = currentPicture.image;
+        img.onload = () => {
+            outlineCtx.drawImage(img, 0, 0, size, size);
+        };
+    } else if (currentPicture.draw) {
+        outlineCtx.save();
+        outlineCtx.lineWidth = 4; outlineCtx.strokeStyle = '#333';
+        outlineCtx.scale(size / 200, size / 200);
+        outlineCtx.translate(10, 10);
+        currentPicture.draw(outlineCtx);
+        outlineCtx.restore();
+    }
 }
 function getColorCoords(e) {
     const rect = colorCanvas.getBoundingClientRect();
@@ -1630,11 +1799,11 @@ function doColoring(e) {
     if (!isColoring) return;
     const [x, y] = getColorCoords(e);
     if (isEraser) {
-        colorCtx.globalCompositeOperation = 'source-over';
-        colorCtx.strokeStyle = '#fff';
+        colorCtx.globalCompositeOperation = 'destination-out';
+        colorCtx.strokeStyle = 'rgba(0,0,0,1)';
         colorCtx.lineWidth = brushSize * 2.5;
     } else {
-        colorCtx.globalCompositeOperation = 'destination-over';
+        colorCtx.globalCompositeOperation = 'source-over';
         colorCtx.strokeStyle = selectedColor;
         colorCtx.lineWidth = brushSize;
     }
@@ -1642,13 +1811,37 @@ function doColoring(e) {
     [cLastX, cLastY] = [x, y]; e.preventDefault();
 }
 function stopColoring() { isColoring = false; }
-function saveColoring() {
-    colorCtx.globalCompositeOperation = 'destination-over';
-    colorCtx.fillStyle = '#fff';
-    colorCtx.fillRect(0, 0, colorCanvas.width, colorCanvas.height);
-    const link = document.createElement('a');
-    link.download = 'my_coloring.png'; link.href = colorCanvas.toDataURL('image/png'); link.click();
-    speakText('우와! 그림이 저장되었어요!'); burst();
+async function saveColoring() {
+    const temp = document.createElement('canvas');
+    temp.width = colorCanvas.width; temp.height = colorCanvas.height;
+    const tctx = temp.getContext('2d');
+    tctx.fillStyle = '#ffffff'; tctx.fillRect(0, 0, temp.width, temp.height);
+    
+    // Draw colors then outline with multiply blend
+    tctx.drawImage(colorCanvas, 0, 0);
+    tctx.globalCompositeOperation = 'multiply';
+    tctx.drawImage(outlineCanvas, 0, 0);
+    
+    const dataUrl = temp.toDataURL('image/png');
+    const fileName = `색칠놀이_${currentPicture.name.split(' ')[0]}_${Date.now()}.png`;
+
+    try {
+        if (navigator.share && navigator.canShare) {
+            const blob = await (await fetch(dataUrl)).blob();
+            const file = new File([blob], fileName, { type: 'image/png' });
+            if (navigator.canShare({ files: [file] })) {
+                await navigator.share({ files: [file], title: '색칠 놀이', text: '내가 색칠한 그림이에요!' });
+                return;
+            }
+        }
+        const link = document.createElement('a');
+        link.download = fileName; link.href = dataUrl; link.click();
+        speakText('그림이 저장되었어요!');
+    } catch (e) {
+        const link = document.createElement('a');
+        link.download = fileName; link.href = dataUrl; link.click();
+    }
+    burst();
 }
 
 // ── Alphabet Train ────────────────────────────────────────────────────────
@@ -1839,6 +2032,87 @@ function speakConversation() {
 function nextConversation() {
     currentConvIndex = (currentConvIndex + 1) % CONVERSATION_DATA.length;
     updateConversationUI();
+}
+
+// ── Character Matching Game ────────────────────────────────────────────────
+let matchingQueue = [], matchingIdx = 0, matchingScore = 0;
+let currentMatchingObj = null;
+
+function initMatchingGame() {
+    show('matching-screen');
+    matchingScore = 0; matchingIdx = 0;
+    matchingQueue = shuffle([...COLORING_PICTURES]).slice(0, 10);
+    renderMatchingQuestion();
+    speakText('캐릭터 맞추기 놀이! 누구인지 맞춰보세요!');
+}
+
+function renderMatchingQuestion() {
+    if (matchingIdx >= matchingQueue.length) {
+        idx = matchingIdx; score = matchingScore; // For end screen
+        endGame(); return;
+    }
+    
+    currentMatchingObj = matchingQueue[matchingIdx];
+    document.getElementById('matchingScoreVal').textContent = matchingScore;
+    document.getElementById('matchingProgressBar').style.width = (matchingIdx / matchingQueue.length * 100) + '%';
+    document.getElementById('matchingProgressText').textContent = matchingIdx + '/' + matchingQueue.length;
+
+    const canvas = document.getElementById('matchingCanvas');
+    const ctx = canvas.getContext('2d');
+    const size = canvas.parentElement.offsetWidth;
+    canvas.width = size * 2; canvas.height = size * 2;
+    canvas.style.width = size + 'px'; canvas.style.height = size + 'px';
+    ctx.scale(2, 2);
+    ctx.clearRect(0, 0, size, size);
+
+    if (currentMatchingObj.image) {
+        const img = new Image();
+        img.src = currentMatchingObj.image;
+        img.onload = () => ctx.drawImage(img, 0, 0, size, size);
+    } else if (currentMatchingObj.draw) {
+        ctx.save();
+        ctx.lineWidth = 4; ctx.strokeStyle = '#333';
+        ctx.scale(size / 200, size / 200); ctx.translate(10, 10);
+        currentMatchingObj.draw(ctx);
+        ctx.restore();
+    }
+
+    const optionsContainer = document.getElementById('matchingOptions');
+    optionsContainer.innerHTML = '';
+    
+    let options = [currentMatchingObj.name];
+    while (options.length < 3) {
+        const r = COLORING_PICTURES[Math.floor(Math.random() * COLORING_PICTURES.length)].name;
+        if (!options.includes(r)) options.push(r);
+    }
+    options = shuffle(options);
+
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt;
+        btn.onclick = () => checkMatching(opt, btn);
+        optionsContainer.appendChild(btn);
+    });
+}
+
+function checkMatching(selected, btn) {
+    const isCorrect = selected === currentMatchingObj.name;
+    if (isCorrect) {
+        btn.classList.add('correct');
+        matchingScore += 10;
+        soundCorrect(); burst();
+        speakText(currentMatchingObj.name.split(' ')[0] + '! 정답입니다!');
+        setTimeout(() => {
+            matchingIdx++;
+            renderMatchingQuestion();
+        }, 1500);
+    } else {
+        btn.classList.add('wrong');
+        soundWrong();
+        speakText('틀렸어요! 다시 생각해보세요.');
+        setTimeout(() => btn.classList.remove('wrong'), 800);
+    }
 }
 
 // ── Background ────────────────────────────────────────────────────────────
