@@ -1920,19 +1920,23 @@ function initColoringGame() {
     // Add global listener to prevent stuck drawing state
     window.addEventListener('pointerup', stopColoring);
 
-    clearColoringCanvas();
+    resizeColoringCanvas();
     speakText('신나는 색칠 놀이! 예쁘게 색칠해봐요!');
 }
 
 function resizeColoringCanvas() {
-    const size = colorCanvas.parentElement.offsetWidth;
+    const container = document.querySelector('.coloring-canvas-container');
+    if (!container) return;
+    const size = container.offsetWidth || 400;
+    
     [colorCanvas, outlineCanvas].forEach(canv => {
         canv.width = size * 2; canv.height = size * 2;
-        canv.style.width = size + 'px'; canv.style.height = size + 'px';
+        canv.style.width = '100%'; canv.style.height = '100%';
         const ctx = canv.getContext('2d');
-        ctx.scale(2, 2);
         ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     });
+    
+    clearColoringCanvas();
 }
 
 function toggleFullScreen() {
@@ -1948,34 +1952,36 @@ function toggleFullScreen() {
 }
 
 function clearColoringCanvas() {
-    const size = colorCanvas.width / 2;
+    const w = colorCanvas.width;
+    const h = colorCanvas.height;
     
     // Fill background with white
     colorCtx.fillStyle = '#ffffff';
-    colorCtx.fillRect(0, 0, size, size);
+    colorCtx.fillRect(0, 0, w, h);
     
     // Reset outline canvas
-    outlineCtx.clearRect(0, 0, size, size);
+    outlineCtx.clearRect(0, 0, w, h);
     outlineCtx.fillStyle = '#ffffff';
-    outlineCtx.fillRect(0, 0, size, size);
+    outlineCtx.fillRect(0, 0, w, h);
     
     if (currentPicture.image) {
         const img = new Image();
         img.src = currentPicture.image; 
         img.onload = () => {
-            outlineCtx.drawImage(img, 0, 0, size, size);
+            outlineCtx.drawImage(img, 0, 0, w, h);
         };
         img.onerror = () => {
             console.error('Failed to load image:', currentPicture.image);
             outlineCtx.fillStyle = '#333';
-            outlineCtx.font = 'bold 24px sans-serif';
+            outlineCtx.font = 'bold ' + (w/15) + 'px sans-serif';
             outlineCtx.textAlign = 'center';
-            outlineCtx.fillText(currentPicture.name, size / 2, size / 2);
+            outlineCtx.fillText(currentPicture.name, w / 2, h / 2);
         };
     } else if (currentPicture.draw) {
         outlineCtx.save();
-        outlineCtx.lineWidth = 4; outlineCtx.strokeStyle = '#333';
-        outlineCtx.scale(size / 200, size / 200);
+        outlineCtx.lineWidth = 4 * (w/400); // Scale line width
+        outlineCtx.strokeStyle = '#333';
+        outlineCtx.scale(w / 200, h / 200);
         outlineCtx.translate(10, 10);
         currentPicture.draw(outlineCtx);
         outlineCtx.restore();
@@ -1990,8 +1996,9 @@ function clearColoringCanvas() {
 }
 function getColorCoords(e) {
     const rect = colorCanvas.getBoundingClientRect();
-    return [(e.clientX - rect.left) * (colorCanvas.width / 2 / rect.width),
-            (e.clientY - rect.top)  * (colorCanvas.height / 2 / rect.height)];
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return [clientX - rect.left, clientY - rect.top];
 }
 function startColoring(e) { 
     // Save state before starting a new stroke for undo
@@ -2018,26 +2025,33 @@ function doColoring(e) {
     colorCtx.lineCap = 'round';
     colorCtx.lineJoin = 'round';
     
+    // Use internal canvas scale for drawing
+    const scale = colorCanvas.width / (colorCanvas.offsetWidth || colorCanvas.getBoundingClientRect().width || 1);
+    const drawX = x * scale;
+    const drawY = y * scale;
+    const lastX = cLastX * scale;
+    const lastY = cLastY * scale;
+
     if (isEraser) {
         colorCtx.globalCompositeOperation = 'destination-out';
-        colorCtx.lineWidth = brushSize * 2;
+        colorCtx.lineWidth = brushSize * scale * 2;
         colorCtx.beginPath();
-        colorCtx.moveTo(cLastX, cLastY);
-        colorCtx.lineTo(x, y);
+        colorCtx.moveTo(lastX, lastY);
+        colorCtx.lineTo(drawX, drawY);
         colorCtx.stroke();
         colorCtx.globalCompositeOperation = 'source-over';
     } else {
         colorCtx.globalCompositeOperation = 'source-over';
         colorCtx.strokeStyle = selectedColor;
-        colorCtx.lineWidth = brushSize;
+        colorCtx.lineWidth = brushSize * scale;
         
         colorCtx.beginPath();
-        colorCtx.moveTo(cLastX, cLastY);
-        colorCtx.lineTo(x, y);
+        colorCtx.moveTo(lastX, lastY);
+        colorCtx.lineTo(drawX, drawY);
         colorCtx.stroke();
         
         if (isGlitter) {
-            drawSparkles(x, y);
+            drawSparkles(drawX, drawY);
         }
     }
     
@@ -2046,11 +2060,13 @@ function doColoring(e) {
 }
 
 function drawSparkles(x, y) {
+    const scale = colorCanvas.width / (colorCanvas.offsetWidth || 1);
+    const scaledBrush = brushSize * scale;
     const count = Math.floor(brushSize / 4);
     for (let i = 0; i < count; i++) {
-        const sx = x + (Math.random() - 0.5) * brushSize * 1.8;
-        const sy = y + (Math.random() - 0.5) * brushSize * 1.8;
-        const sSize = Math.random() * 2.5 + 0.5;
+        const sx = x + (Math.random() - 0.5) * scaledBrush * 1.8;
+        const sy = y + (Math.random() - 0.5) * scaledBrush * 1.8;
+        const sSize = (Math.random() * 2.5 + 0.5) * scale;
         
         colorCtx.fillStyle = '#ffffff';
         colorCtx.beginPath();
