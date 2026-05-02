@@ -35,14 +35,16 @@
         /* Game card */
         .game-card {
             position: relative; z-index: 1;
-            width: 92%; max-width: 480px;
+            width: 95%; max-width: 480px;
             background: #fff; border-radius: 32px;
             padding: 28px 20px 32px;
             box-shadow: 0 24px 64px rgba(0,0,0,.18);
             text-align: center;
             max-height: 95vh; overflow-y: auto;
             scrollbar-width: none;
+            transition: max-width 0.3s ease;
         }
+        .game-card.wide-mode { max-width: 850px; }
         .game-card::-webkit-scrollbar { display: none; }
 
         /* Screen animation */
@@ -480,11 +482,83 @@
             cursor: pointer; display: flex; align-items: center; gap: 4px;
         }
 
+        /* Coloring Sidebar Layout */
+        .coloring-main-layout {
+            display: flex; gap: 15px; margin-top: 10px; min-height: 500px;
+        }
+        .matching-main-layout {
+            display: flex; gap: 15px; margin-top: 10px; min-height: 400px;
+        }
+        .matching-content {
+            flex: 1.5; display: flex; flex-direction: column; justify-content: center;
+        }
+        .matching-sidebar {
+            width: 160px; display: flex; flex-direction: column; gap: 12px;
+            padding: 15px; background: #fff; border: 3px solid var(--light);
+            border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-height: 70vh; overflow-y: auto;
+        }
+        .matching-sidebar::-webkit-scrollbar { display: none; }
+
+        .coloring-main-layout, .matching-main-layout {
+            display: flex; gap: 20px; align-items: start; justify-content: center;
+            margin-top: 10px;
+        }
+        .coloring-content, .matching-content {
+            flex: 1; min-width: 0;
+        }
+        .coloring-sidebar, .matching-sidebar {
+            width: 160px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;
+            padding: 15px; background: #fff; border: 3px solid var(--light);
+            border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-height: 70vh; overflow-y: auto;
+        }
+        @media (max-width: 600px) {
+            .coloring-main-layout, .matching-main-layout { flex-direction: column; }
+            .coloring-sidebar, .matching-sidebar { width: 100%; max-height: none; }
+        }
+        .sidebar-section {
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .section-title {
+            font-size: 13px; font-weight: 800; color: #95a5a6;
+            text-align: center; border-bottom: 2px solid #f1f2f6; padding-bottom: 4px;
+        }
+        .coloring-content {
+            flex: 1; display: flex; flex-direction: column; gap: 10px; overflow: hidden;
+        }
+        .sidebar-palette {
+            display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 6px;
+        }
+        .sidebar-brushes {
+            display: flex !important; flex-direction: column; align-items: center; gap: 10px;
+        }
+        .tool-group {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+        }
+        .btn-tool {
+            background: #f8f9fa; border: 2px solid #eee; border-radius: 12px;
+            padding: 8px 4px; font-size: 14px; font-weight: bold; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-tool:hover { background: var(--sky); color: white; border-color: var(--sky); }
+        .btn-tool.wide { grid-column: span 2; }
+
+        .zoom-wrapper {
+            width: 100%; height: 100%; overflow: auto;
+            border-radius: 20px; background: #eee;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #zoomTarget {
+            transition: transform 0.2s; transform-origin: center;
+            position: relative;
+        }
+
         /* Matching Game UI */
         .matching-img-container {
             width: 100%; aspect-ratio: 1/1;
             background: #fff; border: 4px solid var(--light); border-radius: 24px;
-            margin: 15px 0; position: relative; overflow: hidden;
+            margin: 0; position: relative; overflow: hidden;
             box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
         }
         #matchingCanvas { width: 100%; height: 100%; }
@@ -512,7 +586,7 @@
 
     <!-- ══ START SCREEN ══ -->
     <div id="start-screen" class="screen">
-        <img src="티니핑1.jpg" alt="캐릭터" class="character-img dynamic-char">
+        <img src="하츄핑.jpg" alt="캐릭터" class="character-img dynamic-char">
         <h1>놀면서 배워요!</h1>
         <p class="tagline">티니핑과 함께 한글을 배워봐요! 🌟</p>
         <div id="highScoreBadge" class="high-score-badge" style="display:none">
@@ -522,14 +596,14 @@
             <strong>🎮 어떻게 해요?</strong><br>
             그림을 보고 소리를 들어보세요!<br>
             흩어진 자음과 모음을 <strong>끌어다 놓아</strong><br>
-            글자를 예쁘게 완성해주세요! 💪
+            글자를 예쁘게 완성해주세요! ✨
         </div>
         <button class="btn-main" onclick="showModeSelect()">시작하기! 🚀</button>
     </div>
 
     <!-- ══ MODE SELECT SCREEN ══ -->
     <div id="mode-screen" class="screen" style="display:none">
-        <img src="티니핑1.jpg" alt="캐릭터" class="character-small dynamic-char">
+        <img src="하츄핑.jpg" alt="캐릭터" class="character-small dynamic-char">
         <h2>어떤 놀이 할까요?</h2>
         <div class="mode-grid">
             <button class="mode-card assembly" onclick="selectMode('assembly')">
@@ -571,7 +645,7 @@
         <div class="top-bar" style="justify-content: flex-end;">
             <button class="btn-home" onclick="showStart()">🏠 홈</button>
         </div>
-        <img src="티니핑1.jpg" alt="캐릭터" class="character-img dynamic-char">
+        <img src="하츄핑.jpg" alt="캐릭터" class="character-img dynamic-char">
         <h1 id="levelTitle">레벨 업!</h1>
         <p class="level-desc" id="levelDesc">다음 단계로 넘어가볼까요?</p>
         <button class="btn-main" onclick="startLevel()">다음 단계 출발! 🎈</button>
@@ -614,6 +688,9 @@
             <div class="progress-text" id="writeProgressText">0/5</div>
         </div>
         <div class="emoji-box" id="writeEmojiBox" onclick="speakCurrentWord()">🍎</div>
+        <div id="writeImageBox" style="display:none; margin: 15px 0;">
+            <img id="writeCharImg" src="" style="max-height:140px; border-radius:20px; box-shadow:0 6px 20px rgba(0,0,0,0.15); border:3px solid #fff;">
+        </div>
         <div class="write-info" id="writeWordDisplay">달</div>
         <div class="question-label">그림자를 따라 예쁘게 써보세요!</div>
         <div style="display:flex; gap:10px; justify-content:center; margin-bottom:10px;">
@@ -634,20 +711,45 @@
             </div>
         </div>
         
-        <div class="coloring-top-actions">
-            <button class="btn-sub" style="flex:1; background:#eee; color:#666; margin:0;" onclick="clearColoringCanvas()">🧹 지우기</button>
-            <button class="btn-main" style="flex:1.5; margin:0; padding:8px 12px; font-size:15px;" onclick="saveColoring()">💾 저장하기</button>
+        <div class="coloring-main-layout">
+            <!-- Main Content -->
+            <div class="coloring-content">
+                <div class="coloring-top-actions">
+                    <button class="btn-sub" style="flex:1; background:#eee; color:#666; margin:0;" onclick="clearColoringCanvas()">🧹 지우기</button>
+                    <button class="btn-main" style="flex:1.5; margin:0; padding:8px 12px; font-size:15px;" onclick="saveColoring()">💾 저장하기</button>
+                </div>
+                <div class="picture-selector" id="pictureSelector"></div>
+                <div class="zoom-wrapper">
+                    <div id="zoomTarget">
+                        <div class="coloring-canvas-container">
+                            <canvas id="coloringCanvas"></canvas>
+                            <canvas id="outlineCanvas" style="mix-blend-mode: multiply;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar (Right) -->
+            <div class="coloring-sidebar">
+                <div class="sidebar-section">
+                    <div class="section-title">도구</div>
+                    <div class="tool-group">
+                        <button class="btn-tool wide" onclick="undoColoring()">↩️ 취소</button>
+                        <button class="btn-tool" onclick="adjustZoom(0.1)">➕</button>
+                        <button class="btn-tool" onclick="adjustZoom(-0.1)">➖</button>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <div class="section-title">색깔</div>
+                    <div class="color-palette sidebar-palette" id="colorPalette"></div>
+                </div>
+                <div class="sidebar-section">
+                    <div class="section-title">크기</div>
+                    <div class="brush-selector sidebar-brushes" id="brushSelector"></div>
+                </div>
+            </div>
         </div>
 
-        <div class="picture-selector" id="pictureSelector"></div>
-        <div class="coloring-toolbar">
-            <div class="color-palette" id="colorPalette"></div>
-            <div class="brush-selector" id="brushSelector"></div>
-        </div>
-        <div class="coloring-canvas-container">
-            <canvas id="coloringCanvas"></canvas>
-            <canvas id="outlineCanvas"></canvas>
-        </div>
     </div>
 
     <!-- ══ ALPHABET TRAIN SCREEN ══ -->
@@ -678,11 +780,18 @@
             <div class="progress-track"><div class="progress-bar" id="matchingProgressBar" style="width:0%"></div></div>
             <div class="progress-text" id="matchingProgressText">0/10</div>
         </div>
-        <div class="question-label">이 캐릭터의 이름은 무엇일까요?</div>
-        <div class="matching-img-container">
-            <canvas id="matchingCanvas"></canvas>
+        <div class="matching-main-layout">
+            <div class="matching-content">
+                <div class="matching-img-container">
+                    <canvas id="matchingCanvas"></canvas>
+                </div>
+            </div>
+            <div class="matching-sidebar">
+                <div class="section-title">누구일까요?</div>
+                <div class="options-grid" id="matchingOptions"></div>
+            </div>
         </div>
-        <div class="options-grid" id="matchingOptions"></div>
+
     </div>
 
     <!-- ══ CONVERSATION SCREEN ══ -->
@@ -703,7 +812,7 @@
 
     <!-- ══ END SCREEN ══ -->
     <div id="end-screen" class="screen" style="display:none">
-        <img src="티니핑1.jpg" alt="캐릭터" class="character-img dynamic-char">
+        <img src="하츄핑.jpg" alt="캐릭터" class="character-img dynamic-char">
         <div class="end-title" id="endTitle">대단해요!</div>
         <div class="stars-row" id="endStars">⭐⭐⭐</div>
         <div class="end-stats">
@@ -858,8 +967,10 @@ window.speechSynthesis.onvoiceschanged = () => getBestVoice('ko');
 
 function speakText(text, lang = 'ko') {
     if (!soundEnabled || !('speechSynthesis' in window)) return;
+    // Strip emojis to prevent TTS from reading their descriptions (e.g., "근육질에 구부린 팔뚝")
+    const cleanText = text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
     window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
+    const utt = new SpeechSynthesisUtterance(cleanText);
     const voice = getBestVoice(lang);
     if (voice) utt.voice = voice;
     utt.lang = lang === 'ko' ? 'ko-KR' : 'en-US';
@@ -878,7 +989,18 @@ function shuffle(a) {
     return b;
 }
 function getLevelWords(level) {
-    const pool = level === 1 ? WORDS_LVL1 : level === 2 ? WORDS_LVL2 : WORDS_LVL3;
+    let pool = level === 1 ? WORDS_LVL1 : level === 2 ? WORDS_LVL2 : WORDS_LVL3;
+    if (gameMode === 'writing') {
+        const charPool = COLORING_PICTURES.filter(p => p.image).map(p => ({
+            word: p.name,
+            image: p.image,
+            hint: p.name + ' 캐릭터예요!'
+        }));
+        // Mix in characters for writing practice
+        if (level === 1) pool = [...pool, ...shuffle(charPool).slice(0, 2)];
+        else if (level === 2) pool = [...pool, ...shuffle(charPool).slice(0, 4)];
+        else pool = [...pool, ...shuffle(charPool).slice(0, 6)];
+    }
     return shuffle(pool).slice(0, Q_PER_LEVEL);
 }
 
@@ -897,9 +1019,16 @@ function saveHighScore() {
 
 // ── Screen Helpers ────────────────────────────────────────────────────────
 const SCREENS = ['start-screen','mode-screen','level-screen','game-screen','writing-screen','coloring-screen','alphabet-screen','conversation-screen','matching-screen','end-screen'];
-const CHAR_IMAGES = ['티니핑1.jpg', '1.jpg', '2.jpg', '3.jpg'];
+const CHAR_IMAGES = ['하츄핑.jpg', '피카츄.jpg', '꼬부기.jpg', '파이리.jpg'];
 
 function show(id) {
+    const card = document.querySelector('.game-card');
+    if (['coloring-screen', 'matching-screen'].includes(id)) {
+        card.classList.add('wide-mode');
+    } else {
+        card.classList.remove('wide-mode');
+    }
+
     const randChar = CHAR_IMAGES[Math.floor(Math.random() * CHAR_IMAGES.length)];
     document.querySelectorAll('.dynamic-char').forEach(img => img.src = randChar);
     
@@ -1153,9 +1282,9 @@ function endGame() {
     const max = 3 * Q_PER_LEVEL * 10;
     const pct = score / max;
     let stars, title, msg;
-    if (pct >= .9)      { stars = '⭐⭐⭐'; title = '완벽해요! 🏆';      msg = '진짜 한글 영웅이에요! 🦸 파이팅!'; }
-    else if (pct >= .6) { stars = '⭐⭐';   title = '잘 했어요! 🎉';     msg = '조금 더 연습하면 완벽해질 거예요! 💪'; }
-    else                { stars = '⭐';     title = '조금 더 해봐요! 💪'; msg = '다시 하면 더 잘할 수 있어요! 🚀'; }
+    if (pct >= .9)      { stars = '⭐⭐⭐'; title = '완벽해요!';      msg = '진짜 한글 영웅이에요! 파이팅!'; }
+    else if (pct >= .6) { stars = '⭐⭐';   title = '잘 했어요!';     msg = '조금 더 연습하면 완벽해질 거예요!'; }
+    else                { stars = '⭐';     title = '조금 더 해봐요!'; msg = '다시 하면 더 잘할 수 있어요!'; }
 
     const accuracy = totalAttempts > 0
         ? Math.round((totalAttempts - wrongAttempts) / totalAttempts * 100) : 100;
@@ -1191,7 +1320,21 @@ function setupWritingCanvas() {
 function renderWritingQuestion() {
     if (idx >= queue.length) { currentLevel++; showLevelScreen(); return; }
     currentWordObj = queue[idx];
-    document.getElementById('writeEmojiBox').textContent  = currentWordObj.emoji;
+    
+    const eb = document.getElementById('writeEmojiBox');
+    const ib = document.getElementById('writeImageBox');
+    const ci = document.getElementById('writeCharImg');
+    
+    if (currentWordObj.image) {
+        eb.style.display = 'none';
+        ib.style.display = 'block';
+        ci.src = currentWordObj.image;
+    } else {
+        eb.style.display = 'block';
+        ib.style.display = 'none';
+        eb.textContent = currentWordObj.emoji;
+    }
+
     document.getElementById('writeWordDisplay').textContent = currentWordObj.word;
     document.getElementById('writeLevelVal').textContent  = currentLevel + '단계';
     document.getElementById('writeScoreVal').textContent  = score;
@@ -1287,7 +1430,7 @@ function star(c, cx, cy, r1, r2, pts) {
 }
 
 const COLORING_PICTURES = [
-    { id:'cat', name:'고양이 🐱', draw(c) {
+    { id:'cat', name:'고양이', draw(c) {
         // Body
         c.beginPath(); c.ellipse(90,132,50,44,0,0,Math.PI*2); c.stroke();
         // Head
@@ -1318,7 +1461,7 @@ const COLORING_PICTURES = [
         c.beginPath(); c.ellipse(65,168,18,10,0,0,Math.PI*2); c.stroke();
         c.beginPath(); c.ellipse(115,168,18,10,0,0,Math.PI*2); c.stroke();
     }},
-    { id:'dog', name:'강아지 🐶', draw(c) {
+    { id:'dog', name:'강아지', draw(c) {
         // Body
         c.beginPath(); c.ellipse(90,134,52,44,0,0,Math.PI*2); c.stroke();
         // Head
@@ -1345,7 +1488,7 @@ const COLORING_PICTURES = [
         c.beginPath(); c.ellipse(56,170,18,10,0,0,Math.PI*2); c.stroke();
         c.beginPath(); c.ellipse(124,170,18,10,0,0,Math.PI*2); c.stroke();
     }},
-    { id:'rabbit', name:'토끼 🐰', draw(c) {
+    { id:'rabbit', name:'토끼', draw(c) {
         // Body
         c.beginPath(); c.ellipse(90,136,46,40,0,0,Math.PI*2); c.stroke();
         // Head
@@ -1358,6 +1501,7 @@ const COLORING_PICTURES = [
         c.lineWidth=2;
         c.beginPath(); c.ellipse(72,42,6,22,-0.12,0,Math.PI*2); c.stroke();
         c.beginPath(); c.ellipse(108,42,6,22,0.12,0,Math.PI*2); c.stroke();
+        // LW=4
         c.lineWidth=4;
         // Eyes
         c.beginPath(); c.arc(78,78,6,0,Math.PI*2); c.fill();
@@ -1375,7 +1519,7 @@ const COLORING_PICTURES = [
         c.beginPath(); c.ellipse(62,168,18,10,0,0,Math.PI*2); c.stroke();
         c.beginPath(); c.ellipse(118,168,18,10,0,0,Math.PI*2); c.stroke();
     }},
-    { id:'butterfly', name:'나비 🦋', draw(c) {
+    { id:'butterfly', name:'나비', draw(c) {
         // Upper left wing
         c.beginPath(); c.moveTo(90,92);
         c.bezierCurveTo(70,55,20,38,18,72); c.bezierCurveTo(16,100,55,114,90,92); c.stroke();
@@ -1403,7 +1547,7 @@ const COLORING_PICTURES = [
         c.beginPath(); c.moveTo(94,79); c.quadraticCurveTo(112,58,118,42); c.stroke();
         c.beginPath(); c.arc(118,42,5,0,Math.PI*2); c.fill();
     }},
-    { id:'fish', name:'물고기 🐟', draw(c) {
+    { id:'fish', name:'물고기', draw(c) {
         // Body
         c.beginPath(); c.ellipse(86,95,58,40,0,0,Math.PI*2); c.stroke();
         // Tail fin
@@ -1428,7 +1572,7 @@ const COLORING_PICTURES = [
         c.beginPath(); c.arc(22,50,7,0,Math.PI*2); c.stroke();
         c.beginPath(); c.arc(38,38,4,0,Math.PI*2); c.stroke();
     }},
-    { id:'flower', name:'꽃 🌸', draw(c) {
+    { id:'flower', name:'꽃', draw(c) {
         // Stem
         c.beginPath(); c.moveTo(90,118); c.quadraticCurveTo(74,148,72,178); c.stroke();
         // Left leaf
@@ -1446,7 +1590,7 @@ const COLORING_PICTURES = [
         c.beginPath(); c.arc(90,78,18,0,Math.PI*2); c.stroke();
         c.lineWidth=2; c.beginPath(); c.arc(90,78,8,0,Math.PI*2); c.stroke(); c.lineWidth=4;
     }},
-    { id:'garden', name:'정원 🌺', draw(c) {
+    { id:'garden', name:'정원', draw(c) {
         // Ground
         c.beginPath(); c.moveTo(0,158); c.lineTo(180,158); c.stroke();
         // Grass tufts
@@ -1502,7 +1646,7 @@ const COLORING_PICTURES = [
         }
         c.lineWidth=4;
     }},
-    { id:'rainbow', name:'무지개 🌈', draw(c) {
+    { id:'rainbow', name:'무지개', draw(c) {
         // Sun
         c.beginPath(); c.arc(158,22,16,0,Math.PI*2); c.stroke();
         c.lineWidth=2;
@@ -1528,7 +1672,7 @@ const COLORING_PICTURES = [
         // Stars
         star(c,28,30,8,3,5); star(c,58,14,6,2.5,5); star(c,10,72,5,2,5);
     }},
-    { id:'cake', name:'케이크 🎂', draw(c) {
+    { id:'cake', name:'케이크', draw(c) {
         // Plate
         c.beginPath(); c.ellipse(90,170,65,11,0,0,Math.PI*2); c.stroke();
         // Bottom layer body
@@ -1557,7 +1701,7 @@ const COLORING_PICTURES = [
         for(let i=0;i<5;i++){ c.beginPath(); c.arc(48+i*26,133,5,0,Math.PI*2); c.stroke(); }
         c.lineWidth=4;
     }},
-    { id:'icecream', name:'아이스크림 🍦', draw(c) {
+    { id:'icecream', name:'아이스크림', draw(c) {
         // Cone body
         c.beginPath(); c.moveTo(62,105); c.lineTo(90,175); c.lineTo(118,105); c.stroke();
         // Cone grid lines
@@ -1583,7 +1727,7 @@ const COLORING_PICTURES = [
         .forEach(({x,y})=>{ c.beginPath(); c.moveTo(x,y); c.lineTo(x+8,y+4); c.stroke(); });
         c.lineWidth=4;
     }},
-    { id:'moon', name:'달과 별 🌙', draw(c) {
+    { id:'moon', name:'달과 별', draw(c) {
         // Crescent moon (two arcs forming crescent)
         c.beginPath(); c.arc(72,80,48,Math.PI*0.6,Math.PI*2.4); c.stroke();
         c.beginPath(); c.arc(96,68,36,Math.PI*1.05,Math.PI*2.95,true); c.stroke();
@@ -1605,7 +1749,7 @@ const COLORING_PICTURES = [
         });
         c.lineWidth=4;
     }},
-    { id:'car', name:'자동차 🚗', draw(c) {
+    { id:'car', name:'자동차', draw(c) {
         // Main body (rounded)
         rrect(c,14,95,152,58,14);
         // Cabin / roof
@@ -1627,59 +1771,77 @@ const COLORING_PICTURES = [
         // Door handle
         c.lineWidth=2; c.beginPath(); c.arc(108,122,7,0,Math.PI*2); c.stroke(); c.lineWidth=4;
     }},
-    { id:'tiniping1', name:'티니핑 1 ✨', image:'티니핑1.jpg' },
-    { id:'princess', name:'프린세스 👑', image:'프린세스 하츄핑.jpg' },
-    { id:'gaegul', name:'깨굴핑 🐸', image:'깨굴핑.jpg' },
-    { id:'butterfly2', name:'나비핑 🦋', image:'나비핑.jpg' },
-    { id:'diamond', name:'다이아나핑 💎', image:'다이아나핑.jpg' },
-    { id:'longlong', name:'롱롱핑 🐉', image:'롱롱핑.jpg' },
-    { id:'poni', name:'뽀니핑 🐎', image:'뽀니핑.jpg' },
-    { id:'bbodeuk', name:'뽀득핑 ✨', image:'뽀득핑.jpg' },
-    { id:'sappun', name:'사뿐핑 🩰', image:'사뿐핑.jpg' },
-    { id:'charles', name:'샤를핑 🦢', image:'샤를핑.jpg' },
-    { id:'shushu', name:'슈슈핑 👒', image:'슈슈핑.jpg' },
-    { id:'snow', name:'스노우핑 ❄️', image:'스노우핑.jpg' },
-    { id:'silk', name:'실크핑 🎀', image:'실크핑.jpg' },
-    { id:'areum', name:'아름핑 🌸', image:'아름핑.jpg' },
-    { id:'yaong', name:'야옹핑 🐱', image:'야옹핑.jpg' },
-    { id:'iseul', name:'이슬핑 💧', image:'이슬핑.jpg' },
-    { id:'eclipse', name:'이클립스핑 🌑', image:'이클립스핑.jpg' },
-    { id:'gentle', name:'젠틀핑 🎩', image:'젠틀핑.jpg' },
-    { id:'charming', name:'차밍핑 ✨', image:'차밍핑.jpg' },
-    { id:'coolcool', name:'쿨쿨핑 💤', image:'쿨쿨핑.jpg' },
-    { id:'qping', name:'큐핑 🏹', image:'큐핑.jpg' },
-    { id:'trot', name:'트롯핑 🎵', image:'트롯핑.jpg' },
-    { id:'char1', name:'티니핑 A ✨', image:'1.jpg' },
-    { id:'char2', name:'티니핑 B 🌟', image:'2.jpg' },
-    { id:'char3', name:'티니핑 C 🎀', image:'3.jpg' }
+    { id:'gaegul', name:'깨굴핑', image:'깨굴핑.jpg' },
+    { id:'butterfly2', name:'나비핑', image:'나비핑.jpg' },
+    { id:'diamond', name:'다이아나핑', image:'다이아나핑.jpg' },
+    { id:'longlong', name:'롱롱핑', image:'롱롱핑.jpg' },
+    { id:'poni', name:'뽀니핑', image:'뽀니핑.jpg' },
+    { id:'bbodeuk', name:'뽀득핑', image:'뽀득핑.jpg' },
+    { id:'sappun', name:'사뿐핑', image:'사뿐핑.jpg' },
+    { id:'charles', name:'샤를핑', image:'샤를핑.jpg' },
+    { id:'shushu', name:'슈슈핑', image:'슈슈핑.jpg' },
+    { id:'snow', name:'스노우핑', image:'스노우핑.jpg' },
+    { id:'silk', name:'실크핑', image:'실크핑.jpg' },
+    { id:'areum', name:'아름핑', image:'아름핑.jpg' },
+    { id:'yaong', name:'야옹핑', image:'야옹핑.jpg' },
+    { id:'iseul', name:'이슬핑', image:'이슬핑.jpg' },
+    { id:'eclipse', name:'이클립스핑', image:'이클립스핑.jpg' },
+    { id:'gentle', name:'젠틀핑', image:'젠틀핑.jpg' },
+    { id:'charming', name:'차밍핑', image:'차밍핑.jpg' },
+    { id:'coolcool', name:'쿨쿨핑', image:'쿨쿨핑.jpg' },
+    { id:'qping', name:'큐핑', image:'큐핑.jpg' },
+    { id:'trot', name:'트롯핑', image:'트롯핑.jpg' },
+    { id:'princess', name:'프린세스 하츄핑', image:'프린세스 하츄핑.jpg' },
+    { id:'pikachu', name:'피카츄', image:'피카츄.jpg' },
+    { id:'kkobugi', name:'꼬부기', image:'꼬부기.jpg' },
+    { id:'pairi', name:'파이리', image:'파이리.jpg' },
+    { id:'hachuping', name:'하츄핑', image:'하츄핑.jpg' }
+
 ];
 
 const COLORS = [
-    '#e74c3c','#ff6b6b','#e67e22','#f39c12','#f1c40f',
-    '#a8e063','#2ecc71','#1abc9c','#3498db','#74b9ff',
-    '#9b59b6','#a29bfe','#fd79a8','#e84393','#fab1a0',
-    '#795548','#8d6e63','#9e9e9e','#000000'
+    { hex: '#e74c3c' }, { hex: '#c0392b' }, { hex: '#ff7675' }, // Reds
+    { hex: '#e67e22' }, { hex: '#d35400' }, { hex: '#f39c12' }, // Oranges
+    { hex: '#f1c40f' }, { hex: '#f9ca24' }, { hex: '#fff9c4' }, // Yellows
+    { hex: '#2ecc71' }, { hex: '#27ae60' }, { hex: '#a8e063' }, { hex: '#badc58' }, // Greens
+    { hex: '#3498db' }, { hex: '#2980b9' }, { hex: '#74b9ff' }, { hex: '#00d2d3' }, // Blues
+    { hex: '#9b59b6' }, { hex: '#8e44ad' }, { hex: '#a29bfe' }, { hex: '#6c5ce7' }, // Purples
+    { hex: '#e84393' }, { hex: '#fd79a8' }, { hex: '#fab1a0' }, { hex: '#ff9ff3' }, // Pinks
+    { hex: '#795548' }, { hex: '#8d6e63' }, { hex: '#d2b48c' }, // Browns
+    { hex: '#9e9e9e' }, { hex: '#2d3436' }, { hex: '#000000' }, { hex: '#ffffff' }, // Greys/Black/White
+    { hex: '#ffd700', glitter: true, name: '금색 반짝이' },
+    { hex: '#c0c0c0', glitter: true, name: '은색 반짝이' },
+    { hex: '#ffb6c1', glitter: true, name: '분홍 반짝이' },
+    { hex: '#87ceeb', glitter: true, name: '하늘 반짝이' },
+    { hex: '#9b59b6', glitter: true, name: '보라 반짝이' }
 ];
 const BRUSH_SIZES = [10, 20, 34];
-let selectedColor = COLORS[0];
+let selectedColor = COLORS[0].hex;
+let isGlitter = false;
 let brushSize = BRUSH_SIZES[1];
 let isEraser = false;
 let colorCanvas, colorCtx, outlineCanvas, outlineCtx;
 let isColoring = false, cLastX = 0, cLastY = 0;
 let currentPicture = COLORING_PICTURES[0];
+let undoStack = [];
+let zoomLevel = 1.0;
 
 function initColoringGame() {
     show('coloring-screen');
-    selectedColor = COLORS[0]; isEraser = false; brushSize = BRUSH_SIZES[1];
+    isEraser = false; brushSize = BRUSH_SIZES[1];
 
     const palette = document.getElementById('colorPalette');
     palette.innerHTML = '';
     COLORS.forEach(c => {
         const btn = document.createElement('div');
-        btn.className = 'color-btn' + (c === selectedColor ? ' selected' : '');
-        btn.style.backgroundColor = c;
+        btn.className = 'color-btn' + (c.hex === selectedColor ? ' selected' : '');
+        btn.style.backgroundColor = c.hex;
+        if (c.glitter) {
+            btn.classList.add('glitter-btn');
+            btn.innerHTML = '<span style="position:absolute; font-size:10px; top:-2px; right:-2px;">✨</span>';
+        }
         btn.onclick = () => {
-            isEraser = false; selectedColor = c;
+            isEraser = false; selectedColor = c.hex; isGlitter = !!c.glitter;
             palette.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
         };
@@ -1794,7 +1956,24 @@ function getColorCoords(e) {
     return [(e.clientX - rect.left) * (colorCanvas.width / 2 / rect.width),
             (e.clientY - rect.top)  * (colorCanvas.height / 2 / rect.height)];
 }
-function startColoring(e) { isColoring = true; [cLastX, cLastY] = getColorCoords(e); e.preventDefault(); }
+function startColoring(e) { 
+    // Save state before starting a new stroke for undo
+    if (undoStack.length >= 20) undoStack.shift();
+    undoStack.push(colorCtx.getImageData(0, 0, colorCanvas.width, colorCanvas.height));
+    
+    isColoring = true; [cLastX, cLastY] = getColorCoords(e); e.preventDefault(); 
+}
+function undoColoring() {
+    if (undoStack.length > 0) {
+        const state = undoStack.pop();
+        colorCtx.putImageData(state, 0, 0);
+        speakText('취소했어요!');
+    }
+}
+function adjustZoom(delta) {
+    zoomLevel = Math.max(0.5, Math.min(3.0, zoomLevel + delta));
+    document.getElementById('zoomTarget').style.transform = `scale(${zoomLevel})`;
+}
 function doColoring(e) {
     if (!isColoring) return;
     const [x, y] = getColorCoords(e);
@@ -1808,7 +1987,35 @@ function doColoring(e) {
         colorCtx.lineWidth = brushSize;
     }
     colorCtx.beginPath(); colorCtx.moveTo(cLastX, cLastY); colorCtx.lineTo(x, y); colorCtx.stroke();
+    
+    if (!isEraser && isGlitter) {
+        drawSparkles(x, y);
+    }
+    
     [cLastX, cLastY] = [x, y]; e.preventDefault();
+}
+
+function drawSparkles(x, y) {
+    const count = Math.floor(brushSize / 4);
+    for (let i = 0; i < count; i++) {
+        const sx = x + (Math.random() - 0.5) * brushSize * 1.8;
+        const sy = y + (Math.random() - 0.5) * brushSize * 1.8;
+        const sSize = Math.random() * 2.5 + 0.5;
+        
+        colorCtx.fillStyle = '#ffffff';
+        colorCtx.beginPath();
+        colorCtx.arc(sx, sy, sSize, 0, Math.PI * 2);
+        colorCtx.fill();
+        
+        if (Math.random() > 0.5) {
+            colorCtx.fillStyle = selectedColor;
+            colorCtx.globalAlpha = 0.4;
+            colorCtx.beginPath();
+            colorCtx.arc(sx, sy, sSize * 2, 0, Math.PI * 2);
+            colorCtx.fill();
+            colorCtx.globalAlpha = 1.0;
+        }
+    }
 }
 function stopColoring() { isColoring = false; }
 async function saveColoring() {
@@ -2102,7 +2309,7 @@ function checkMatching(selected, btn) {
         btn.classList.add('correct');
         matchingScore += 10;
         soundCorrect(); burst();
-        speakText(currentMatchingObj.name.split(' ')[0] + '! 정답입니다!');
+        speakText(currentMatchingObj.name + '! 정답입니다!');
         setTimeout(() => {
             matchingIdx++;
             renderMatchingQuestion();
