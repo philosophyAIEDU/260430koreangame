@@ -382,7 +382,17 @@
             background: white; border: 2px solid #ddd; border-radius: 20px;
             position: relative; margin: 6px 0; overflow: hidden; touch-action: none;
         }
-        #coloringCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; }
+        #coloringCanvas, #outlineCanvas { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+        }
+        #coloringCanvas { cursor: crosshair; z-index: 1; background: transparent; }
+        #outlineCanvas { pointer-events: none; mix-blend-mode: multiply; z-index: 2; background: transparent; }
+
+        .glitter-btn { position: relative; }
+        .glitter-btn span {
+            position: absolute; font-size: 10px; top: -2px; right: -2px;
+            pointer-events: none; text-shadow: 0 0 2px white;
+        }
 
         /* ── Alphabet train ── */
         .alphabet-progress {
@@ -723,7 +733,7 @@
                     <div id="zoomTarget">
                         <div class="coloring-canvas-container">
                             <canvas id="coloringCanvas"></canvas>
-                            <canvas id="outlineCanvas" style="mix-blend-mode: multiply;"></canvas>
+                            <canvas id="outlineCanvas"></canvas>
                         </div>
                     </div>
                 </div>
@@ -968,7 +978,8 @@ window.speechSynthesis.onvoiceschanged = () => getBestVoice('ko');
 function speakText(text, lang = 'ko') {
     if (!soundEnabled || !('speechSynthesis' in window)) return;
     // Strip emojis to prevent TTS from reading their descriptions (e.g., "근육질에 구부린 팔뚝")
-    const cleanText = text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+    // Comprehensive regex to strip emojis and symbols that might be read as descriptions
+    const cleanText = text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u{1F191}-\u{1F251}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2B50}\u{2B55}\u{23E9}-\u{23EF}\u{25B6}\u{23F8}-\u{23FA}\u{1F004}\u{1F0CF}\u{231A}\u{231B}\u{23F0}\u{23F3}\u{25AA}\u{25AB}\u{25FB}-\u{25FE}\u{2600}-\u{2604}\u{260E}\u{2611}\u{2614}\u{2615}\u{2618}\u{261D}\u{2620}\u{2622}\u{2623}\u{2626}\u{262A}\u{262E}\u{262F}\u{2638}-\u{263A}\u{2640}\u{2642}\u{2648}-\u{2653}\u{265F}\u{2660}\u{2663}\u{2665}\u{2666}\u{2668}\u{267B}\u{267E}\u{267F}\u{2692}-\u{2697}\u{2699}\u{269B}\u{269C}\u{26A0}\u{26A1}\u{26A7}\u{26AA}\u{26AB}\u{26B0}\u{26B1}\u{26BD}\u{26BE}\u{26C4}\u{26C5}\u{26C8}\u{26CE}\u{26CF}\u{26D1}\u{26D3}\u{26D4}\u{26E9}\u{26EA}\u{26F0}-\u{26F5}\u{26F7}-\u{26FA}\u{26FD}]/gu, '');
     window.speechSynthesis.cancel();
     const utt = new SpeechSynthesisUtterance(cleanText);
     const voice = getBestVoice(lang);
@@ -1800,20 +1811,22 @@ const COLORING_PICTURES = [
 ];
 
 const COLORS = [
-    { hex: '#e74c3c' }, { hex: '#c0392b' }, { hex: '#ff7675' }, // Reds
-    { hex: '#e67e22' }, { hex: '#d35400' }, { hex: '#f39c12' }, // Oranges
-    { hex: '#f1c40f' }, { hex: '#f9ca24' }, { hex: '#fff9c4' }, // Yellows
-    { hex: '#2ecc71' }, { hex: '#27ae60' }, { hex: '#a8e063' }, { hex: '#badc58' }, // Greens
-    { hex: '#3498db' }, { hex: '#2980b9' }, { hex: '#74b9ff' }, { hex: '#00d2d3' }, // Blues
-    { hex: '#9b59b6' }, { hex: '#8e44ad' }, { hex: '#a29bfe' }, { hex: '#6c5ce7' }, // Purples
-    { hex: '#e84393' }, { hex: '#fd79a8' }, { hex: '#fab1a0' }, { hex: '#ff9ff3' }, // Pinks
-    { hex: '#795548' }, { hex: '#8d6e63' }, { hex: '#d2b48c' }, // Browns
+    { hex: '#e74c3c' }, { hex: '#c0392b' }, { hex: '#ff7675' }, { hex: '#ff4d4d' }, // Reds
+    { hex: '#e67e22' }, { hex: '#d35400' }, { hex: '#f39c12' }, { hex: '#ff9f43' }, // Oranges
+    { hex: '#f1c40f' }, { hex: '#f9ca24' }, { hex: '#fff9c4' }, { hex: '#fffa65' }, // Yellows
+    { hex: '#2ecc71' }, { hex: '#27ae60' }, { hex: '#a8e063' }, { hex: '#badc58' }, { hex: '#32ff7e' }, // Greens
+    { hex: '#3498db' }, { hex: '#2980b9' }, { hex: '#74b9ff' }, { hex: '#00d2d3' }, { hex: '#18dcff' }, // Blues
+    { hex: '#9b59b6' }, { hex: '#8e44ad' }, { hex: '#a29bfe' }, { hex: '#6c5ce7' }, { hex: '#cd84f1' }, // Purples
+    { hex: '#e84393' }, { hex: '#fd79a8' }, { hex: '#fab1a0' }, { hex: '#ff9ff3' }, { hex: '#ffcccc' }, // Pinks
+    { hex: '#795548' }, { hex: '#8d6e63' }, { hex: '#d2b48c' }, { hex: '#4b4b4b' }, // Browns/Dark
     { hex: '#9e9e9e' }, { hex: '#2d3436' }, { hex: '#000000' }, { hex: '#ffffff' }, // Greys/Black/White
     { hex: '#ffd700', glitter: true, name: '금색 반짝이' },
     { hex: '#c0c0c0', glitter: true, name: '은색 반짝이' },
     { hex: '#ffb6c1', glitter: true, name: '분홍 반짝이' },
     { hex: '#87ceeb', glitter: true, name: '하늘 반짝이' },
-    { hex: '#9b59b6', glitter: true, name: '보라 반짝이' }
+    { hex: '#9b59b6', glitter: true, name: '보라 반짝이' },
+    { hex: '#55efc4', glitter: true, name: '민트 반짝이' },
+    { hex: '#fab1a0', glitter: true, name: '살구 반짝이' }
 ];
 const BRUSH_SIZES = [10, 20, 34];
 let selectedColor = COLORS[0].hex;
@@ -1903,6 +1916,9 @@ function initColoringGame() {
     colorCanvas.addEventListener('pointermove', doColoring);
     colorCanvas.addEventListener('pointerup', stopColoring);
     colorCanvas.addEventListener('pointerout', stopColoring);
+    
+    // Add global listener to prevent stuck drawing state
+    window.addEventListener('pointerup', stopColoring);
 
     clearColoringCanvas();
     speakText('신나는 색칠 놀이! 예쁘게 색칠해봐요!');
@@ -1933,14 +1949,28 @@ function toggleFullScreen() {
 
 function clearColoringCanvas() {
     const size = colorCanvas.width / 2;
-    colorCtx.clearRect(0, 0, size, size);
+    
+    // Fill background with white
+    colorCtx.fillStyle = '#ffffff';
+    colorCtx.fillRect(0, 0, size, size);
+    
+    // Reset outline canvas
     outlineCtx.clearRect(0, 0, size, size);
+    outlineCtx.fillStyle = '#ffffff';
+    outlineCtx.fillRect(0, 0, size, size);
     
     if (currentPicture.image) {
         const img = new Image();
-        img.src = currentPicture.image;
+        img.src = currentPicture.image; 
         img.onload = () => {
             outlineCtx.drawImage(img, 0, 0, size, size);
+        };
+        img.onerror = () => {
+            console.error('Failed to load image:', currentPicture.image);
+            outlineCtx.fillStyle = '#333';
+            outlineCtx.font = 'bold 24px sans-serif';
+            outlineCtx.textAlign = 'center';
+            outlineCtx.fillText(currentPicture.name, size / 2, size / 2);
         };
     } else if (currentPicture.draw) {
         outlineCtx.save();
@@ -1949,6 +1979,13 @@ function clearColoringCanvas() {
         outlineCtx.translate(10, 10);
         currentPicture.draw(outlineCtx);
         outlineCtx.restore();
+    }
+    
+    const sel = document.getElementById('pictureSelector');
+    if (sel) {
+        sel.querySelectorAll('.picture-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.textContent === currentPicture.name);
+        });
     }
 }
 function getColorCoords(e) {
@@ -1977,22 +2014,35 @@ function adjustZoom(delta) {
 function doColoring(e) {
     if (!isColoring) return;
     const [x, y] = getColorCoords(e);
+    
+    colorCtx.lineCap = 'round';
+    colorCtx.lineJoin = 'round';
+    
     if (isEraser) {
         colorCtx.globalCompositeOperation = 'destination-out';
-        colorCtx.strokeStyle = 'rgba(0,0,0,1)';
-        colorCtx.lineWidth = brushSize * 2.5;
+        colorCtx.lineWidth = brushSize * 2;
+        colorCtx.beginPath();
+        colorCtx.moveTo(cLastX, cLastY);
+        colorCtx.lineTo(x, y);
+        colorCtx.stroke();
+        colorCtx.globalCompositeOperation = 'source-over';
     } else {
         colorCtx.globalCompositeOperation = 'source-over';
         colorCtx.strokeStyle = selectedColor;
         colorCtx.lineWidth = brushSize;
+        
+        colorCtx.beginPath();
+        colorCtx.moveTo(cLastX, cLastY);
+        colorCtx.lineTo(x, y);
+        colorCtx.stroke();
+        
+        if (isGlitter) {
+            drawSparkles(x, y);
+        }
     }
-    colorCtx.beginPath(); colorCtx.moveTo(cLastX, cLastY); colorCtx.lineTo(x, y); colorCtx.stroke();
     
-    if (!isEraser && isGlitter) {
-        drawSparkles(x, y);
-    }
-    
-    [cLastX, cLastY] = [x, y]; e.preventDefault();
+    cLastX = x; cLastY = y;
+    e.preventDefault();
 }
 
 function drawSparkles(x, y) {
