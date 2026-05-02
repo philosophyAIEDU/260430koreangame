@@ -555,7 +555,7 @@
         .btn-tool.wide { grid-column: span 2; }
 
         .zoom-wrapper {
-            width: 100%; height: 100%; overflow: auto;
+            width: 100%; flex: 1; min-height: 200px; overflow: auto;
             border-radius: 20px; background: #eee;
             display: flex; align-items: center; justify-content: center;
         }
@@ -798,6 +798,7 @@
             </div>
             <div class="matching-sidebar">
                 <div class="section-title">누구일까요?</div>
+                <div id="matchingAnswerBox" style="margin-bottom: 15px; font-size: 24px; font-weight: 800; color: var(--teal); display: none; text-align: center; background: #e0faf1; padding: 10px; border-radius: 12px; border: 2px dashed var(--teal);"></div>
                 <div class="options-grid" id="matchingOptions"></div>
             </div>
         </div>
@@ -977,9 +978,14 @@ window.speechSynthesis.onvoiceschanged = () => getBestVoice('ko');
 
 function speakText(text, lang = 'ko') {
     if (!soundEnabled || !('speechSynthesis' in window)) return;
-    // Strip emojis to prevent TTS from reading their descriptions (e.g., "근육질에 구부린 팔뚝")
-    // Comprehensive regex to strip emojis and symbols that might be read as descriptions
-    const cleanText = text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u{1F191}-\u{1F251}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2B50}\u{2B55}\u{23E9}-\u{23EF}\u{25B6}\u{23F8}-\u{23FA}\u{1F004}\u{1F0CF}\u{231A}\u{231B}\u{23F0}\u{23F3}\u{25AA}\u{25AB}\u{25FB}-\u{25FE}\u{2600}-\u{2604}\u{260E}\u{2611}\u{2614}\u{2615}\u{2618}\u{261D}\u{2620}\u{2622}\u{2623}\u{2626}\u{262A}\u{262E}\u{262F}\u{2638}-\u{263A}\u{2640}\u{2642}\u{2648}-\u{2653}\u{265F}\u{2660}\u{2663}\u{2665}\u{2666}\u{2668}\u{267B}\u{267E}\u{267F}\u{2692}-\u{2697}\u{2699}\u{269B}\u{269C}\u{26A0}\u{26A1}\u{26A7}\u{26AA}\u{26AB}\u{26B0}\u{26B1}\u{26BD}\u{26BE}\u{26C4}\u{26C5}\u{26C8}\u{26CE}\u{26CF}\u{26D1}\u{26D3}\u{26D4}\u{26E9}\u{26EA}\u{26F0}-\u{26F5}\u{26F7}-\u{26FA}\u{26FD}]/gu, '');
+    // Strip emojis and problematic TTS descriptions
+    let cleanText = text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u{1F191}-\u{1F251}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2B50}\u{2B55}\u{23E9}-\u{23EF}\u{25B6}\u{23F8}-\u{23FA}\u{1F004}\u{1F0CF}\u{231A}\u{231B}\u{23F0}\u{23F3}\u{25AA}\u{25AB}\u{25FB}-\u{25FE}\u{2600}-\u{2604}\u{260E}\u{2611}\u{2614}\u{2615}\u{2618}\u{261D}\u{2620}\u{2622}\u{2623}\u{2626}\u{262A}\u{262E}\u{262F}\u{2638}-\u{263A}\u{2640}\u{2642}\u{2648}-\u{2653}\u{265F}\u{2660}\u{2663}\u{2665}\u{2666}\u{2668}\u{267B}\u{267E}\u{267F}\u{2692}-\u{2697}\u{2699}\u{269B}\u{269C}\u{26A0}\u{26A1}\u{26A7}\u{26AA}\u{26AB}\u{26B0}\u{26B1}\u{26BD}\u{26BE}\u{26C4}\u{26C5}\u{26C8}\u{26CE}\u{26CF}\u{26D1}\u{26D3}\u{26D4}\u{26E9}\u{26EA}\u{26F0}-\u{26F5}\u{26F7}-\u{26FA}\u{26FD}]/gu, '');
+    
+    // Explicitly remove unwanted phrases that TTS might read from emojis
+    cleanText = cleanText.replace(/근육질에 구부린 팔뚝/g, '');
+    cleanText = cleanText.trim();
+    if (!cleanText) return;
+
     window.speechSynthesis.cancel();
     const utt = new SpeechSynthesisUtterance(cleanText);
     const voice = getBestVoice(lang);
@@ -1835,13 +1841,14 @@ let brushSize = BRUSH_SIZES[1];
 let isEraser = false;
 let colorCanvas, colorCtx, outlineCanvas, outlineCtx;
 let isColoring = false, cLastX = 0, cLastY = 0;
-let currentPicture = COLORING_PICTURES[0];
+let currentPicture = COLORING_PICTURES[0]; 
 let undoStack = [];
 let zoomLevel = 1.0;
 
 function initColoringGame() {
     show('coloring-screen');
     isEraser = false; brushSize = BRUSH_SIZES[1];
+    if (!currentPicture) currentPicture = COLORING_PICTURES[0];
 
     const palette = document.getElementById('colorPalette');
     palette.innerHTML = '';
@@ -1887,26 +1894,29 @@ function initColoringGame() {
     });
 
     const sel = document.getElementById('pictureSelector');
-    sel.innerHTML = '';
-    COLORING_PICTURES.forEach(pic => {
-        const btn = document.createElement('button');
-        btn.className = 'picture-btn' + (pic === currentPicture ? ' active' : '');
-        btn.textContent = pic.name; btn.style.fontFamily = 'inherit';
-        btn.onclick = () => {
-            currentPicture = pic;
-            sel.querySelectorAll('.picture-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            clearColoringCanvas();
-        };
-        sel.appendChild(btn);
-    });
+    if (sel) {
+        sel.innerHTML = '';
+        COLORING_PICTURES.forEach(pic => {
+            const btn = document.createElement('button');
+            btn.className = 'picture-btn' + (pic === currentPicture ? ' active' : '');
+            btn.textContent = pic.name; btn.style.fontFamily = 'inherit';
+            btn.onclick = () => {
+                currentPicture = pic;
+                sel.querySelectorAll('.picture-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                clearColoringCanvas();
+            };
+            sel.appendChild(btn);
+        });
+    }
 
     colorCanvas = document.getElementById('coloringCanvas');
     colorCtx = colorCanvas.getContext('2d');
     outlineCanvas = document.getElementById('outlineCanvas');
     outlineCtx = outlineCanvas.getContext('2d');
-    
-    resizeColoringCanvas();
+
+    // Wait for wide-mode CSS transition (0.3s) to finish before measuring canvas size
+    setTimeout(resizeColoringCanvas, 350);
 
     colorCanvas.removeEventListener('pointerdown', startColoring);
     colorCanvas.removeEventListener('pointermove', doColoring);
@@ -1917,23 +1927,32 @@ function initColoringGame() {
     colorCanvas.addEventListener('pointerup', stopColoring);
     colorCanvas.addEventListener('pointerout', stopColoring);
     
-    // Add global listener to prevent stuck drawing state
     window.addEventListener('pointerup', stopColoring);
-
-    resizeColoringCanvas();
     speakText('신나는 색칠 놀이! 예쁘게 색칠해봐요!');
 }
 
 function resizeColoringCanvas() {
     const container = document.querySelector('.coloring-canvas-container');
     if (!container) return;
-    const size = container.offsetWidth || 400;
+    
+    // Get actual display size
+    const rect = container.getBoundingClientRect();
+    const width = rect.width || 400;
+    const height = rect.height || 400;
+    
+    // High-DPI support: scale internal pixels
+    const dpr = window.devicePixelRatio || 1;
     
     [colorCanvas, outlineCanvas].forEach(canv => {
-        canv.width = size * 2; canv.height = size * 2;
-        canv.style.width = '100%'; canv.style.height = '100%';
+        canv.width = width * dpr;
+        canv.height = height * dpr;
+        canv.style.width = width + 'px';
+        canv.style.height = height + 'px';
+        
         const ctx = canv.getContext('2d');
-        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
     });
     
     clearColoringCanvas();
@@ -1952,8 +1971,10 @@ function toggleFullScreen() {
 }
 
 function clearColoringCanvas() {
-    const w = colorCanvas.width;
-    const h = colorCanvas.height;
+    if (!currentPicture) return;
+    const rect = colorCanvas.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
     
     // Fill background with white
     colorCtx.fillStyle = '#ffffff';
@@ -1966,20 +1987,26 @@ function clearColoringCanvas() {
     
     if (currentPicture.image) {
         const img = new Image();
-        img.src = currentPicture.image; 
+        img.src = currentPicture.image;
         img.onload = () => {
-            outlineCtx.drawImage(img, 0, 0, w, h);
+            // Draw character image on colorCanvas as background (under user's strokes)
+            const scale = Math.min(w / img.naturalWidth, h / img.naturalHeight);
+            const iw = img.naturalWidth * scale;
+            const ih = img.naturalHeight * scale;
+            const ix = (w - iw) / 2;
+            const iy = (h - ih) / 2;
+            colorCtx.drawImage(img, ix, iy, iw, ih);
         };
         img.onerror = () => {
-            console.error('Failed to load image:', currentPicture.image);
-            outlineCtx.fillStyle = '#333';
-            outlineCtx.font = 'bold ' + (w/15) + 'px sans-serif';
-            outlineCtx.textAlign = 'center';
-            outlineCtx.fillText(currentPicture.name, w / 2, h / 2);
+            colorCtx.fillStyle = '#aaa';
+            colorCtx.font = 'bold ' + (w / 12) + 'px sans-serif';
+            colorCtx.textAlign = 'center';
+            colorCtx.textBaseline = 'middle';
+            colorCtx.fillText(currentPicture.name, w / 2, h / 2);
         };
     } else if (currentPicture.draw) {
         outlineCtx.save();
-        outlineCtx.lineWidth = 4 * (w/400); // Scale line width
+        outlineCtx.lineWidth = 4;
         outlineCtx.strokeStyle = '#333';
         outlineCtx.scale(w / 200, h / 200);
         outlineCtx.translate(10, 10);
@@ -1996,8 +2023,14 @@ function clearColoringCanvas() {
 }
 function getColorCoords(e) {
     const rect = colorCanvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
     return [clientX - rect.left, clientY - rect.top];
 }
 function startColoring(e) { 
@@ -2022,36 +2055,29 @@ function doColoring(e) {
     if (!isColoring) return;
     const [x, y] = getColorCoords(e);
     
+    colorCtx.lineWidth = brushSize;
     colorCtx.lineCap = 'round';
     colorCtx.lineJoin = 'round';
     
-    // Use internal canvas scale for drawing
-    const scale = colorCanvas.width / (colorCanvas.offsetWidth || colorCanvas.getBoundingClientRect().width || 1);
-    const drawX = x * scale;
-    const drawY = y * scale;
-    const lastX = cLastX * scale;
-    const lastY = cLastY * scale;
-
     if (isEraser) {
         colorCtx.globalCompositeOperation = 'destination-out';
-        colorCtx.lineWidth = brushSize * scale * 2;
+        colorCtx.lineWidth = brushSize * 2;
         colorCtx.beginPath();
-        colorCtx.moveTo(lastX, lastY);
-        colorCtx.lineTo(drawX, drawY);
+        colorCtx.moveTo(cLastX, cLastY);
+        colorCtx.lineTo(x, y);
         colorCtx.stroke();
         colorCtx.globalCompositeOperation = 'source-over';
     } else {
         colorCtx.globalCompositeOperation = 'source-over';
         colorCtx.strokeStyle = selectedColor;
-        colorCtx.lineWidth = brushSize * scale;
         
         colorCtx.beginPath();
-        colorCtx.moveTo(lastX, lastY);
-        colorCtx.lineTo(drawX, drawY);
+        colorCtx.moveTo(cLastX, cLastY);
+        colorCtx.lineTo(x, y);
         colorCtx.stroke();
         
         if (isGlitter) {
-            drawSparkles(drawX, drawY);
+            drawSparkles(x, y);
         }
     }
     
@@ -2060,24 +2086,21 @@ function doColoring(e) {
 }
 
 function drawSparkles(x, y) {
-    const scale = colorCanvas.width / (colorCanvas.offsetWidth || 1);
-    const scaledBrush = brushSize * scale;
     const count = Math.floor(brushSize / 4);
     for (let i = 0; i < count; i++) {
-        const sx = x + (Math.random() - 0.5) * scaledBrush * 1.8;
-        const sy = y + (Math.random() - 0.5) * scaledBrush * 1.8;
-        const sSize = (Math.random() * 2.5 + 0.5) * scale;
+        const sx = x + (Math.random() - 0.5) * brushSize * 1.8;
+        const sy = y + (Math.random() - 0.5) * brushSize * 1.8;
         
         colorCtx.fillStyle = '#ffffff';
         colorCtx.beginPath();
-        colorCtx.arc(sx, sy, sSize, 0, Math.PI * 2);
+        colorCtx.arc(sx, sy, Math.random() * 2.5 + 0.5, 0, Math.PI * 2);
         colorCtx.fill();
         
         if (Math.random() > 0.5) {
             colorCtx.fillStyle = selectedColor;
             colorCtx.globalAlpha = 0.4;
             colorCtx.beginPath();
-            colorCtx.arc(sx, sy, sSize * 2, 0, Math.PI * 2);
+            colorCtx.arc(sx, sy, (Math.random() * 2.5 + 0.5) * 2, 0, Math.PI * 2);
             colorCtx.fill();
             colorCtx.globalAlpha = 1.0;
         }
@@ -2350,6 +2373,7 @@ function renderMatchingQuestion() {
         ctx.restore();
     }
 
+    document.getElementById('matchingAnswerBox').style.display = 'none';
     const optionsContainer = document.getElementById('matchingOptions');
     optionsContainer.innerHTML = '';
     
@@ -2375,6 +2399,11 @@ function checkMatching(selected, btn) {
         btn.classList.add('correct');
         matchingScore += 10;
         soundCorrect(); burst();
+        
+        const ansBox = document.getElementById('matchingAnswerBox');
+        ansBox.textContent = '✨ ' + currentMatchingObj.name + ' ✨';
+        ansBox.style.display = 'block';
+
         speakText(currentMatchingObj.name + '! 정답입니다!');
         setTimeout(() => {
             matchingIdx++;
